@@ -2,7 +2,7 @@
 
 A clean, self-hostable chat interface powered by the Anthropic API. Built with session-based history, multi-chat management, model switching, and file attachments.
 
-🔗 **Live Demo:** [arc-one-amber.vercel.app](https://arc-one-amber.vercel.app/)
+🔗 **Live Demo:** [arc-lime.vercel.app](https://arc-lime.vercel.app/)
 > Try it out — sign up with username `guest` to explore.
 
 ---
