@@ -655,6 +655,7 @@ function Sidebar({ sessions, activeId, collapsed, onToggle, onSelect, onNew, onD
         padding: collapsed ? "14px 0" : "14px 12px",
         borderBottom: "1px solid var(--border)",
         flexShrink: 0,
+        height: 54,
       }}>
         {!collapsed && (
           <span style={{
@@ -1271,6 +1272,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "0 24px", height: 54,
           borderBottom: "1px solid var(--border)",
+          background: "var(--surface)",
           flexShrink: 0,
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
