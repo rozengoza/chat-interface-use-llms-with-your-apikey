@@ -91,18 +91,6 @@ npm install
 npm run dev
 ```
 
-### Environment Variables
-
-Create a `.env` file in the root of the project to configure allowed usernames:
-
-```env
-VITE_ALLOWED_USER_1=guest
-# VITE_ALLOWED_USER_2=yourname
-# Add more as needed
-```
-
-> The API key is **not** an environment variable — it is entered by each user at runtime and never stored.
-
 ---
 
 ## Deploy to Vercel
