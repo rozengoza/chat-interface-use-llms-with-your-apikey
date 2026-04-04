@@ -132,8 +132,8 @@ function parseClaudeSharePage(html: string): RawMsg[] {
         const msgs = extractMsgs(arr);
         if (msgs.length > 0) return msgs;
       }
-    } catch { 
-      /* keep going */ 
+    } catch {
+      /* keep going */
     }
   }
 
@@ -163,10 +163,10 @@ function TokenRow({ msg }: { msg: Message }) {
   if (!t) return null;
 
   const badges = [
-    { label: "in",        val: t.input,      color: "var(--text-muted)" },
-    { label: "out",       val: t.output,     color: "var(--text-muted)" },
-    ...(t.cacheRead  > 0 ? [{ label: "⚡ cached",  val: t.cacheRead,  color: "var(--green)"  }] : []),
-    ...(t.cacheWrite > 0 ? [{ label: "written",    val: t.cacheWrite, color: "var(--orange)" }] : []),
+    { label: "in", val: t.input, color: "var(--text-muted)" },
+    { label: "out", val: t.output, color: "var(--text-muted)" },
+    ...(t.cacheRead > 0 ? [{ label: "⚡ cached", val: t.cacheRead, color: "var(--green)" }] : []),
+    ...(t.cacheWrite > 0 ? [{ label: "written", val: t.cacheWrite, color: "var(--orange)" }] : []),
   ];
 
   return (
@@ -442,7 +442,7 @@ function ApiKeyModal({ current, onSave, onClose }: { current: string; onSave: (k
               fontFamily: "'JetBrains Mono', monospace", fontSize: 13, outline: "none",
             }}
             onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
-            onBlur={(e)  => (e.currentTarget.style.borderColor = "var(--border2)")}
+            onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border2)")}
           />
           <button
             onClick={() => setShow(!show)}
@@ -742,86 +742,86 @@ function Sidebar({ sessions, activeId, collapsed, onToggle, onSelect, onNew, onD
 
         {collapsed
           ? /* Collapsed: just icon dots per session */
-            sorted.slice(0, 12).map((s) => (
-              <button
-                key={s.id}
-                onClick={() => onSelect(s.id)}
-                title={s.title}
-                style={{
-                  width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
-                  padding: "7px 0", borderRadius: 6, marginBottom: 2,
-                  background: s.id === activeId ? "var(--surface2)" : "transparent",
-                  color: s.id === activeId ? "var(--accent)" : "var(--text-dim)",
-                  transition: "background 0.15s",
-                }}
-                onMouseEnter={(e) => { if (s.id !== activeId) e.currentTarget.style.background = "var(--surface2)"; }}
-                onMouseLeave={(e) => { if (s.id !== activeId) e.currentTarget.style.background = "transparent"; }}
-              >
-                <MessageSquare size={14} />
-              </button>
-            ))
+          sorted.slice(0, 12).map((s) => (
+            <button
+              key={s.id}
+              onClick={() => onSelect(s.id)}
+              title={s.title}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+                padding: "7px 0", borderRadius: 6, marginBottom: 2,
+                background: s.id === activeId ? "var(--surface2)" : "transparent",
+                color: s.id === activeId ? "var(--accent)" : "var(--text-dim)",
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={(e) => { if (s.id !== activeId) e.currentTarget.style.background = "var(--surface2)"; }}
+              onMouseLeave={(e) => { if (s.id !== activeId) e.currentTarget.style.background = "transparent"; }}
+            >
+              <MessageSquare size={14} />
+            </button>
+          ))
           : /* Expanded: grouped list */
-            groups.map((g) => (
-              <div key={g.label}>
-                <div style={{
-                  fontSize: 10.5, fontFamily: "'JetBrains Mono', monospace",
-                  color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em",
-                  padding: "12px 8px 4px",
-                }}>
-                  {g.label}
-                </div>
-                {g.items.map((s) => (
-                  <div
-                    key={s.id}
-                    onClick={() => onSelect(s.id)}
-                    style={{
-                      display: "flex", alignItems: "center", gap: 8,
-                      padding: "7px 8px", borderRadius: 7, marginBottom: 1,
-                      background: s.id === activeId ? "var(--surface2)" : "transparent",
-                      cursor: "pointer",
-                      transition: "background 0.15s",
-                      position: "relative",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (s.id !== activeId) e.currentTarget.style.background = "var(--surface2)";
-                      const btn = e.currentTarget.querySelector<HTMLElement>(".del-btn");
-                      if (btn) btn.style.opacity = "1";
-                    }}
-                    onMouseLeave={(e) => {
-                      if (s.id !== activeId) e.currentTarget.style.background = "transparent";
-                      const btn = e.currentTarget.querySelector<HTMLElement>(".del-btn");
-                      if (btn) btn.style.opacity = "0";
-                    }}
-                  >
-                    <MessageSquare
-                      size={13}
-                      style={{ flexShrink: 0, color: s.id === activeId ? "var(--accent)" : "var(--text-dim)" }}
-                    />
-                    <span style={{
-                      flex: 1, fontSize: 13, lineHeight: 1.35,
-                      color: s.id === activeId ? "var(--text)" : "var(--text-muted)",
-                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                    }}>
-                      {s.title}
-                    </span>
-                    <button
-                      className="del-btn"
-                      onClick={(e) => { e.stopPropagation(); onDelete(s.id); }}
-                      title="Delete"
-                      style={{
-                        opacity: 0, flexShrink: 0, display: "flex", alignItems: "center",
-                        color: "var(--text-dim)", padding: 2, borderRadius: 4,
-                        transition: "color 0.15s, opacity 0.15s",
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = "var(--red)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-dim)")}
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                ))}
+          groups.map((g) => (
+            <div key={g.label}>
+              <div style={{
+                fontSize: 10.5, fontFamily: "'JetBrains Mono', monospace",
+                color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em",
+                padding: "12px 8px 4px",
+              }}>
+                {g.label}
               </div>
-            ))
+              {g.items.map((s) => (
+                <div
+                  key={s.id}
+                  onClick={() => onSelect(s.id)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    padding: "7px 8px", borderRadius: 7, marginBottom: 1,
+                    background: s.id === activeId ? "var(--surface2)" : "transparent",
+                    cursor: "pointer",
+                    transition: "background 0.15s",
+                    position: "relative",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (s.id !== activeId) e.currentTarget.style.background = "var(--surface2)";
+                    const btn = e.currentTarget.querySelector<HTMLElement>(".del-btn");
+                    if (btn) btn.style.opacity = "1";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (s.id !== activeId) e.currentTarget.style.background = "transparent";
+                    const btn = e.currentTarget.querySelector<HTMLElement>(".del-btn");
+                    if (btn) btn.style.opacity = "0";
+                  }}
+                >
+                  <MessageSquare
+                    size={13}
+                    style={{ flexShrink: 0, color: s.id === activeId ? "var(--accent)" : "var(--text-dim)" }}
+                  />
+                  <span style={{
+                    flex: 1, fontSize: 13, lineHeight: 1.35,
+                    color: s.id === activeId ? "var(--text)" : "var(--text-muted)",
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>
+                    {s.title}
+                  </span>
+                  <button
+                    className="del-btn"
+                    onClick={(e) => { e.stopPropagation(); onDelete(s.id); }}
+                    title="Delete"
+                    style={{
+                      opacity: 0, flexShrink: 0, display: "flex", alignItems: "center",
+                      color: "var(--text-dim)", padding: 2, borderRadius: 4,
+                      transition: "color 0.15s, opacity 0.15s",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "var(--red)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-dim)")}
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ))
         }
       </div>
     </aside>
@@ -830,43 +830,43 @@ function Sidebar({ sessions, activeId, collapsed, onToggle, onSelect, onNew, onD
 
 export default function App({ user, onLogout }: { user: UserProfile; onLogout: () => void }) {
   // Multi-session state
-  const [sessions, setSessions]   = useState<Conversation[]>(() => loadSessions(user.id));
-  const [activeId, setActiveId]   = useState<string>(() => {
+  const [sessions, setSessions] = useState<Conversation[]>(() => loadSessions(user.id));
+  const [activeId, setActiveId] = useState<string>(() => {
     const saved = loadActiveId(user.id);
-    const all   = loadSessions(user.id);
+    const all = loadSessions(user.id);
     if (saved && all.find((s) => s.id === saved)) return saved;
     return all.length > 0 ? all[0].id : "";
   });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Chat state
-  const [apiKey, setApiKey]               = useState(() => loadApiKey(user.id));
-  const [input, setInput]                 = useState("");
-  const [streaming, setStreaming]         = useState(false);
+  const [apiKey, setApiKey] = useState(() => loadApiKey(user.id));
+  const [input, setInput] = useState("");
+  const [streaming, setStreaming] = useState(false);
   const [streamingMsgId, setStreamingMsgId] = useState<string | null>(null);
-  const [thinking, setThinking]           = useState(false);
-  const [showKeyModal, setShowKeyModal]   = useState(false);
-  const [showImport, setShowImport]       = useState(false);
-  const [model, setModel]                 = useState(DEFAULT_MODEL);
+  const [thinking, setThinking] = useState(false);
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+  const [model, setModel] = useState(DEFAULT_MODEL);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
-  const [theme, setTheme]                 = useState<"dark" | "light">(
+  const [theme, setTheme] = useState<"dark" | "light">(
     () => (localStorage.getItem("arc_theme") as "dark" | "light") ?? "dark"
   );
 
   // Edit state
-  const [editingMsgId, setEditingMsgId]   = useState<string | null>(null);
-  const [editText, setEditText]           = useState("");
+  const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
 
   // Attachment state
-  const [attachments, setAttachments]     = useState<Attachment[]>([]);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
 
-  const bottomRef          = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const textareaRef        = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef       = useRef<HTMLInputElement>(null);
-  const abortRef           = useRef<AbortController | null>(null);
-  const streamBuf          = useRef("");
-  const rafRef             = useRef<number | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const streamBuf = useRef("");
+  const rafRef = useRef<number | null>(null);
 
   // Derived active conversation
   const activeConv = sessions.find((s) => s.id === activeId) ?? null;
@@ -1117,11 +1117,11 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
     setSessions((prev) => prev.map((s) =>
       s.id === sessionId
         ? {
-            ...s,
-            messages: allMessages,
-            updatedAt: Date.now(),
-            title: isFirstMessage ? deriveTitle(text) : s.title,
-          }
+          ...s,
+          messages: allMessages,
+          updatedAt: Date.now(),
+          title: isFirstMessage ? deriveTitle(text) : s.title,
+        }
         : s
     ));
 
@@ -1283,7 +1283,12 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
             </span>
             <select
               value={model}
-              onChange={(e) => setModel(e.target.value)}
+              onChange={(e) => {
+                if (e.target.value.includes("sonnet")) {
+                  if (!confirm("Use Sonnet for intensive tasks. (~10x more expensive than Haiku)")) return;
+                }
+                setModel(e.target.value)
+              }}
               disabled={streaming}
               style={{
                 fontSize: 11, fontFamily: "'JetBrains Mono', monospace",
@@ -1459,7 +1464,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
               boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
             }}
             onFocusCapture={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
-            onBlurCapture={(e) =>  (e.currentTarget.style.borderColor = "var(--border2)")}
+            onBlurCapture={(e) => (e.currentTarget.style.borderColor = "var(--border2)")}
           >
             {attachments.length > 0 && (
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", padding: "10px 12px 0" }}>

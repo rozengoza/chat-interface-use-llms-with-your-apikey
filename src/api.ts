@@ -43,7 +43,7 @@ function estimateTokens(text: string): number {
 
 // Maximum input tokens to send (system prompt + history).
 // Leaves 4096 for the output and keeps total well within a cost-conscious limit.
-const MAX_INPUT_TOKENS = 6000;
+const MAX_INPUT_TOKENS = 2000;
 
 // Build the API message list with smart caching.
 // Anthropic allows a maximum of 4 cache_control blocks total (including the
@@ -137,6 +137,8 @@ export async function streamChat(
   abortSignal?: AbortSignal,
   model = DEFAULT_MODEL,
 ): Promise<void> {
+  const maxOutputTokens = model.includes("sonnet") ? 1500 : 2048;
+
   if (!apiKey.trim()) {
     callbacks.onError("No API key set. Click the key icon to configure.");
     return;
@@ -157,7 +159,7 @@ export async function streamChat(
       },
       body: JSON.stringify({
         model: model,
-        max_tokens: 4096,
+        max_tokens: maxOutputTokens,
         stream: true,
         system: [
           {
