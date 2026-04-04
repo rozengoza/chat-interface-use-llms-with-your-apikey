@@ -1392,10 +1392,10 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
               {apiKey && (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8, width: "100%", maxWidth: 460 }}>
                   {[
-                    "Explain prompt caching in Claude API",
-                    "Write a React custom hook with TypeScript",
-                    "What is the cost of Claude Sonnet 4.6?",
-                    "Best practices for streaming AI responses",
+                    "Why is my code running at the speed of a tired sloth? 🦥",
+                    "Roast my project idea and then help me fix it 🔥",
+                    "I have 3 hours to learn .NET — what's the move? ⚡",
+                    "Write me a React hook so clean it makes me cry 😭",
                   ].map((s) => (
                     <button
                       key={s}
