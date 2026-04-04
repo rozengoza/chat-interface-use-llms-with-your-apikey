@@ -92,7 +92,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         padding: 32,
         boxShadow: "var(--shadow)",
       }}>
-        {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: 28 }}>
           <div style={{
             width: 52, height: 52,
@@ -109,7 +108,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           </p>
         </div>
 
-        {/* Tab switcher — only show if users exist AND registration is possible */}
         {(hasUsers || canRegister) && (
           <div style={{
             display: "flex", background: "var(--bg)", borderRadius: 8,
@@ -149,7 +147,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         )}
 
         <form onSubmit={(e) => void handleSubmit(e)} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {/* Username */}
           <div>
             <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 5, fontWeight: 500 }}>
               Username
@@ -167,7 +164,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 5, fontWeight: 500 }}>
               Password
@@ -196,7 +192,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </div>
           </div>
 
-          {/* Confirm password (register only) */}
           {mode === "register" && (
             <div>
               <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 5, fontWeight: 500 }}>
@@ -215,7 +210,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </div>
           )}
 
-          {/* Personalisation (register only) */}
           {mode === "register" && (
             <>
               <div>
@@ -264,7 +258,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </>
           )}
 
-          {/* Error */}
           {error && (
             <div style={{
               fontSize: 13, color: "var(--red)",
@@ -276,7 +269,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </div>
           )}
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={busy}
@@ -305,7 +297,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           </button>
         </form>
 
-        {/* Existing user avatars */}
         {users.length > 0 && mode === "login" && (
           <div style={{ marginTop: 24, display: "flex", gap: 8, justifyContent: "center" }}>
             {users.map((u) => (

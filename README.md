@@ -1,73 +1,111 @@
-# React + TypeScript + Vite
+# ARC — Claude Chat Interface
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A clean, self-hostable chat interface powered by the Anthropic API. Built with session-based history, multi-chat management, model switching, and file attachments.
 
-Currently, two official plugins are available:
+🔗 **Live Demo:** [arc-one-amber.vercel.app](https://arc-one-amber.vercel.app/)
+> Try it out — sign up with username `guest` to explore.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- 💬 **Session-based chat history** — conversations persist across sessions
+- 🔀 **Chat switching** — manage and switch between multiple conversations
+- 🤖 **Model selection** — choose between `claude-sonnet-4-6` and `claude-haiku-3-5`
+- 📎 **Attachments** — send images and files alongside your messages
+- 👤 **User accounts** — sign up and keep your chats tied to your profile
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## How the API Key Works
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+> 🔐 **Your API key is never stored anywhere.**
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+When you open the app, you enter your [Anthropic API key](https://console.anthropic.com/) directly in the browser. It lives only in memory for that session — it is never sent to a server, written to a database, or persisted in any way. Closing the tab clears it entirely.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+This means:
+- You are always in control of your own key
+- The app can be deployed publicly without any risk of key exposure
+- Each user brings and manages their own Anthropic API key
+
+---
+
+## Self-Hosting
+
+### Prerequisites
+
+- Node.js 18+
+- An [Anthropic API key](https://console.anthropic.com/)
+
+### Getting Started
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/rozengoza/arc.git
+cd arc
+
+# 2. Install dependencies
+npm install
+
+# 3. Run the development server
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Environment Variables
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Create a `.env` file in the root of the project to configure allowed usernames:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```env
+VITE_ALLOWED_USER_1=guest
+# VITE_ALLOWED_USER_2=yourname
+# Add more as needed
 ```
+
+> The API key is **not** an environment variable — it is entered by each user at runtime and never stored.
+
+---
+
+## Deploy to Vercel
+
+The easiest way to deploy your own instance:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/rozengoza/arc)
+
+1. Fork this repository
+2. Import it into [Vercel](https://vercel.com/)
+3. Set your `VITE_ALLOWED_USER_*` variables in the Vercel project settings
+4. Deploy — users will enter their own API keys when they open the app
+
+---
+
+## Models Available
+
+| Model | Description |
+|---|---|
+| `claude-sonnet-4-6` | Powerful and balanced — great for most tasks |
+| `claude-haiku-3-5` | Fast and lightweight — ideal for quick queries |
+
+---
+
+## Contributing
+
+Contributions are welcome! Feel free to open an issue or submit a pull request.
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Commit your changes (`git commit -m 'Add my feature'`)
+4. Push to the branch (`git push origin feature/my-feature`)
+5. Open a Pull Request
+
+---
+
+## License
+
+MIT License — see [LICENSE](./LICENSE) for details.
+
+---
+
+## Acknowledgements
+
+- Built on top of the [Anthropic API](https://www.anthropic.com/)
+- Inspired by the simplicity Claude deserves

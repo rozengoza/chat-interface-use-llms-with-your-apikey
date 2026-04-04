@@ -3,7 +3,7 @@ import type { Conversation } from "./types";
 // Keys are now namespaced per user so each user has isolated storage
 function k(userId: string, key: string) { return `arc_${userId}_${key}`; }
 
-// ── Sessions ────────────────────────────────────────────────────────────────
+// Sessions
 
 export function loadSessions(userId: string): Conversation[] {
   try {
@@ -19,7 +19,7 @@ export function saveSessions(userId: string, sessions: Conversation[]): void {
   localStorage.setItem(k(userId, "sessions"), JSON.stringify(sessions));
 }
 
-// ── Active ID ────────────────────────────────────────────────────────────────
+// Active ID
 
 export function loadActiveId(userId: string): string {
   return localStorage.getItem(k(userId, "active_id")) ?? "";
@@ -29,7 +29,7 @@ export function saveActiveId(userId: string, id: string): void {
   localStorage.setItem(k(userId, "active_id"), id);
 }
 
-// ── API Key ──────────────────────────────────────────────────────────────────
+// API Key
 
 export function loadApiKey(userId: string): string {
   return localStorage.getItem(k(userId, "api_key")) ?? "";
@@ -39,7 +39,7 @@ export function saveApiKey(userId: string, key: string): void {
   localStorage.setItem(k(userId, "api_key"), key);
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// Helpers
 
 export function createNewSession(): Conversation {
   return {

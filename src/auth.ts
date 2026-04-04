@@ -27,15 +27,17 @@ const USERS_KEY   = "arc_users";
 const SESSION_KEY = "arc_session";
 const ITERATIONS  = 200_000;
 
-// ── Allowlist ─────────────────────────────────────────────────────────────────
+// Allowlist
 // Usernames are loaded from .env.local at build time (gitignored).
 // Set VITE_ALLOWED_USER_1 and VITE_ALLOWED_USER_2 in .env.local.
-export const ALLOWED_USERNAMES: [string, string] = [
+export const ALLOWED_USERNAMES: [string, string, string, string] = [
   import.meta.env.VITE_ALLOWED_USER_1,
   import.meta.env.VITE_ALLOWED_USER_2,
+  import.meta.env.VITE_ALLOWED_USER_3,
+  import.meta.env.VITE_ALLOWED_USER_4,
 ];
 
-// ── Crypto helpers ────────────────────────────────────────────────────────────
+// Crypto helpers
 
 function bytesToHex(buf: ArrayBuffer): string {
   return Array.from(new Uint8Array(buf))
@@ -78,7 +80,7 @@ function randomHex(bytes = 16): string {
   return bytesToHex(crypto.getRandomValues(new Uint8Array(bytes)).buffer);
 }
 
-// ── User storage ──────────────────────────────────────────────────────────────
+// User storage
 
 export function loadUsers(): UserProfile[] {
   try {
@@ -94,7 +96,7 @@ function saveUsers(users: UserProfile[]): void {
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
-// ── Register ──────────────────────────────────────────────────────────────────
+// Register
 
 export async function registerUser(
   username: string,
@@ -125,7 +127,7 @@ export async function registerUser(
   return profile;
 }
 
-// ── Login ─────────────────────────────────────────────────────────────────────
+// Login
 
 export async function loginUser(
   username: string,
@@ -151,7 +153,7 @@ export async function loginUser(
   return user;
 }
 
-// ── Session ───────────────────────────────────────────────────────────────────
+// Session
 
 export function getActiveSession(): { session: Session; user: UserProfile } | null {
   try {

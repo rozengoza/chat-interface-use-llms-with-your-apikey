@@ -50,9 +50,6 @@ import { streamChat, MODELS, DEFAULT_MODEL } from "./api";
 import faviconUrl from "./assets/favicon.svg";
 import "./index.css";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Markdown renderer (marked + highlight.js)
-// ─────────────────────────────────────────────────────────────────────────────
 marked.setOptions({
   breaks: true,
   gfm: true,
@@ -88,9 +85,6 @@ function renderMarkdown(text: string): string {
   });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Claude.ai share page parser
-// ─────────────────────────────────────────────────────────────────────────────
 
 type RawMsg = { role: "user" | "assistant"; content: string };
 
@@ -138,7 +132,9 @@ function parseClaudeSharePage(html: string): RawMsg[] {
         const msgs = extractMsgs(arr);
         if (msgs.length > 0) return msgs;
       }
-    } catch { /* keep going */ }
+    } catch { 
+      /* keep going */ 
+    }
   }
 
   throw new Error(
@@ -148,9 +144,6 @@ function parseClaudeSharePage(html: string): RawMsg[] {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
 function fmtTime(ts: number): string {
   return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
@@ -165,9 +158,6 @@ function fmtDate(ts: number): string {
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Token badges
-// ─────────────────────────────────────────────────────────────────────────────
 function TokenRow({ msg }: { msg: Message }) {
   const t = msg.tokens;
   if (!t) return null;
@@ -210,9 +200,6 @@ function handleCodeCopy(e: React.MouseEvent<HTMLDivElement>) {
   });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Message bubble
-// ─────────────────────────────────────────────────────────────────────────────
 function MessageBubble({
   msg, isStreaming, onEdit, onRegenerate,
   isEditing, editText, onEditChange, onEditSave, onEditCancel,
@@ -278,7 +265,6 @@ function MessageBubble({
             }}>error</span>
           )}
 
-          {/* Action buttons — visible on hover via CSS */}
           {!isStreaming && !isEditing && (
             <div className="msg-actions" style={{
               marginLeft: "auto", display: "flex", gap: 4, opacity: 0,
@@ -331,7 +317,6 @@ function MessageBubble({
           )}
         </div>
 
-        {/* Attachments */}
         {msg.attachments && msg.attachments.length > 0 && (
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
             {msg.attachments.map((att) =>
@@ -406,9 +391,6 @@ function MessageBubble({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Thinking indicator
-// ─────────────────────────────────────────────────────────────────────────────
 function Thinking() {
   return (
     <div style={{ display: "flex", gap: 14, padding: "22px 0", borderBottom: "1px solid var(--border)" }}>
@@ -426,9 +408,6 @@ function Thinking() {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// API Key modal
-// ─────────────────────────────────────────────────────────────────────────────
 function ApiKeyModal({ current, onSave, onClose }: { current: string; onSave: (k: string) => void; onClose: () => void }) {
   const [val, setVal] = useState(current);
   const [show, setShow] = useState(false);
@@ -497,9 +476,6 @@ function ApiKeyModal({ current, onSave, onClose }: { current: string; onSave: (k
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Import from Claude.ai modal
-// ─────────────────────────────────────────────────────────────────────────────
 function ImportClaudeModal({ onImport, onClose }: {
   onImport: (msgs: RawMsg[]) => void;
   onClose: () => void;
@@ -633,9 +609,6 @@ function ImportClaudeModal({ onImport, onClose }: {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Sidebar
-// ─────────────────────────────────────────────────────────────────────────────
 interface SidebarProps {
   sessions: Conversation[];
   activeId: string;
@@ -675,7 +648,6 @@ function Sidebar({ sessions, activeId, collapsed, onToggle, onSelect, onNew, onD
       overflow: "hidden",
       flexShrink: 0,
     }}>
-      {/* Top bar */}
       <div style={{
         display: "flex",
         alignItems: "center",
@@ -713,7 +685,6 @@ function Sidebar({ sessions, activeId, collapsed, onToggle, onSelect, onNew, onD
         </button>
       </div>
 
-      {/* New chat + Import buttons */}
       <div style={{ padding: collapsed ? "10px 8px" : "10px 12px", flexShrink: 0, display: "flex", flexDirection: "column", gap: 6 }}>
         <button
           onClick={onNew}
@@ -738,7 +709,6 @@ function Sidebar({ sessions, activeId, collapsed, onToggle, onSelect, onNew, onD
           {!collapsed && "New chat"}
         </button>
 
-        {/* Import from Claude.ai */}
         <button
           onClick={onImport}
           title="Import from Claude.ai"
@@ -858,9 +828,6 @@ function Sidebar({ sessions, activeId, collapsed, onToggle, onSelect, onNew, onD
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Main App
-// ─────────────────────────────────────────────────────────────────────────────
 export default function App({ user, onLogout }: { user: UserProfile; onLogout: () => void }) {
   // Multi-session state
   const [sessions, setSessions]   = useState<Conversation[]>(() => loadSessions(user.id));
@@ -949,8 +916,6 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
   useEffect(() => { if (streaming || thinking) scrollToBottom(); }, [sessions, thinking, streaming, scrollToBottom]);
   useEffect(() => { scrollToBottom(); }, [activeId, activeConv?.messages.length, scrollToBottom]);
 
-  // ── Session management ────────────────────────────────────────────────────
-
   const handleNewSession = useCallback(() => {
     const s = createNewSession();
     setSessions((prev) => [s, ...prev]);
@@ -997,8 +962,6 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
     }
   }, [activeId, user.id]);
 
-  // ── Import from Claude.ai ──────────────────────────────────────────────────
-
   const handleImportConversation = useCallback((msgs: RawMsg[]) => {
     const now = Date.now();
     const messages: Message[] = msgs.map((m, i) => ({
@@ -1016,8 +979,6 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
     setActiveId(fresh.id);
     setShowImport(false);
   }, []);
-
-  // ── Messaging ─────────────────────────────────────────────────────────────
 
   const handleSaveKey = useCallback((key: string) => {
     setApiKey(key); saveApiKey(user.id, key);
@@ -1046,8 +1007,6 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
     setStreamingMsgId(null);
     streamBuf.current = "";
   }, [activeId, streamingMsgId]);
-
-  // ── Streaming helper (shared by send / edit / regenerate) ───────────────
 
   const startStream = useCallback(async (sessionId: string, messages: Message[]) => {
     if (!apiKey) { setShowKeyModal(true); return; }
@@ -1171,8 +1130,6 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
     await startStream(sessionId, allMessages);
   }, [input, streaming, apiKey, activeId, sessions, attachments, startStream]);
 
-  // ── Edit message ──────────────────────────────────────────────────────────
-
   const handleStartEdit = useCallback((msgId: string) => {
     if (streaming) return;
     const conv = sessions.find((s) => s.id === activeId);
@@ -1214,8 +1171,6 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
     setEditText("");
   }, []);
 
-  // ── Regenerate ────────────────────────────────────────────────────────────
-
   const handleRegenerate = useCallback(async (msgId: string) => {
     if (streaming) return;
 
@@ -1225,7 +1180,6 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
     const msgIndex = conv.messages.findIndex((m) => m.id === msgId);
     if (msgIndex === -1) return;
 
-    // Remove this assistant message and everything after it
     const newMessages = conv.messages.slice(0, msgIndex);
 
     setSessions((prev) => prev.map((s) =>
@@ -1236,8 +1190,6 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
 
     await startStream(activeId, newMessages);
   }, [streaming, activeId, sessions, startStream]);
-
-  // ── File attachments ──────────────────────────────────────────────────────
 
   const handleFileSelect = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -1299,12 +1251,8 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
   const hasMessages = (activeConv?.messages.length ?? 0) > 0;
   const hasCacheHits = activeConv?.messages.some((m) => (m.tokens?.cacheRead ?? 0) > 0) ?? false;
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-
-      {/* ── Sidebar ── */}
       <Sidebar
         sessions={sessions}
         activeId={activeId}
@@ -1315,13 +1263,10 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
         onDelete={handleDeleteSession}
         onImport={() => setShowImport(true)}
       />
-
-      {/* ── Main chat area ── */}
       <div style={{
         flex: 1, display: "flex", flexDirection: "column",
         overflow: "hidden", minWidth: 0,
       }}>
-        {/* Header */}
         <header style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "0 24px", height: 54,
@@ -1336,7 +1281,6 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
             }}>
               {activeConv?.title ?? "ARC"}
             </span>
-            {/* Model selector */}
             <select
               value={model}
               onChange={(e) => setModel(e.target.value)}
@@ -1361,7 +1305,6 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
           </div>
 
           <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
-            {/* Theme toggle */}
             <button
               onClick={() => setTheme((t) => t === "dark" ? "light" : "dark")}
               title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
@@ -1393,7 +1336,6 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
               {apiKey ? "Key set" : "Add key"}
             </button>
 
-            {/* User avatar */}
             <div style={{
               display: "flex", alignItems: "center", gap: 7,
               padding: "4px 10px 4px 6px",
@@ -1420,14 +1362,12 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
           </div>
         </header>
 
-        {/* Messages */}
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
           style={{ flex: 1, overflowY: "auto", position: "relative" }}
         >
           {!hasMessages ? (
-            /* Empty state */
             <div style={{
               display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
               height: "100%", gap: 16, paddingBottom: 60, padding: "0 24px 60px",
@@ -1510,7 +1450,6 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
           <div ref={bottomRef} />
         </div>
 
-        {/* Input bar */}
         <div style={{ padding: "12px 24px 18px", flexShrink: 0 }}>
           <div
             style={{
@@ -1522,7 +1461,6 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
             onFocusCapture={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
             onBlurCapture={(e) =>  (e.currentTarget.style.borderColor = "var(--border2)")}
           >
-            {/* Attachment chips */}
             {attachments.length > 0 && (
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", padding: "10px 12px 0" }}>
                 {attachments.map((att) => (
