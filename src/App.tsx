@@ -629,14 +629,109 @@ function ImportClaudeModal({ onImport, onClose }: {
   onImport: (msgs: RawMsg[]) => void;
   onClose: () => void;
 }) {
+  const [tab, setTab] = useState<"json" | "link">("json");
+  const [jsonText, setJsonText] = useState("");
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleLoad = async () => {
+  // ── JSON / file import ──────────────────────────────────────────────────
+  function handleJsonImport() {
+    setError("");
+    if (!jsonText.trim()) { setError("Paste or upload exported JSON first."); return; }
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const obj = JSON.parse(jsonText) as any;
+      // Walk the object looking for a chat_messages array or any array of message-like objects
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      function looksLikeMsgArray(arr: any[]): boolean {
+        if (arr.length === 0) return false;
+        const first = arr[0];
+        if (typeof first !== "object" || first === null) return false;
+        // Standard formats
+        if (first.sender || first.role || first.content || first.text) return true;
+        // {user, assistant} pair format
+        if (typeof first.user === "string" || typeof first.assistant === "string") return true;
+        return false;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      function findMsgArray(o: any, depth = 0): any[] | null {
+        if (depth > 6 || !o || typeof o !== "object") return null;
+        if (Array.isArray(o)) {
+          if (looksLikeMsgArray(o)) return o;
+          for (const item of o) {
+            const found = findMsgArray(item, depth + 1);
+            if (found) return found;
+          }
+          return null;
+        }
+        // Check named keys first
+        for (const key of ["chat_messages", "messages", "conversation"]) {
+          if (Array.isArray(o[key])) {
+            const found = findMsgArray(o[key], depth + 1);
+            if (found) return found;
+          }
+        }
+        for (const key of Object.keys(o)) {
+          const found = findMsgArray(o[key], depth + 1);
+          if (found) return found;
+        }
+        return null;
+      }
+      const arr = findMsgArray(obj);
+      if (!arr) throw new Error("Could not find a messages array in the JSON. Make sure this is a Claude.ai export file.");
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      function extractText(v: any): string {
+        if (typeof v === "string") return v;
+        if (Array.isArray(v)) return v.map((c) => (typeof c === "string" ? c : (c as {text?: string}).text ?? "")).join("\n");
+        return "";
+      }
+
+      // Normalise: support {sender,text}, {role,content}, and {user,assistant} pair formats
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const msgs: RawMsg[] = arr.flatMap((m: any): RawMsg[] => {
+        // {user: "...", assistant: "..."} — expand into two messages
+        if (typeof m.user === "string" || typeof m.assistant === "string") {
+          const out: RawMsg[] = [];
+          if (m.user?.trim()) out.push({ role: "user", content: m.user });
+          if (m.assistant?.trim()) out.push({ role: "assistant", content: m.assistant });
+          return out;
+        }
+        const role: "user" | "assistant" | null =
+          m.sender === "human" || m.role === "user" ? "user"
+          : m.sender === "assistant" || m.role === "assistant" ? "assistant"
+          : null;
+        if (!role) return [];
+        const text = extractText(m.text ?? m.content ?? "");
+        if (!text.trim()) return [];
+        return [{ role, content: text }];
+      });
+      if (msgs.length === 0) throw new Error("No messages found. The file may be empty or in an unsupported format.");
+      onImport(msgs);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Invalid JSON");
+    }
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    try {
+      const txt = await f.text();
+      setJsonText(txt);
+      setError("");
+    } catch {
+      setError("Failed to read file.");
+    }
+  }
+
+  // ── Share link import (best-effort; likely blocked by auth) ─────────────
+  const handleLinkLoad = async () => {
     const shareMatch = url.match(/claude\.ai\/share\/([a-f0-9-]{36})/i);
     if (!shareMatch) {
-      setError("Please enter a valid Claude.ai share link (e.g. https://claude.ai/share/...)");
+      setError("Please enter a valid Claude.ai share link.");
       return;
     }
     const shareId = shareMatch[1];
@@ -644,7 +739,6 @@ function ImportClaudeModal({ onImport, onClose }: {
     setError("");
     try {
       const targetUrl = `https://claude.ai/share/${shareId}`;
-      // Try multiple CORS proxies in order until one succeeds
       const proxies: Array<(u: string) => { url: string; extract: (r: Response) => Promise<string> }> = [
         (u) => ({
           url: `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
@@ -654,26 +748,24 @@ function ImportClaudeModal({ onImport, onClose }: {
           url: `https://corsproxy.io/?${encodeURIComponent(u)}`,
           extract: (r) => r.text(),
         }),
-        (u) => ({
-          url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-          extract: (r) => r.text(),
-        }),
       ];
 
       let html = "";
-      let lastErr = "";
       for (const makeProxy of proxies) {
         try {
           const { url: proxyUrl, extract } = makeProxy(targetUrl);
           const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(12_000) });
-          if (!res.ok) { lastErr = `HTTP ${res.status}`; continue; }
-          html = await extract(res);
-          if (html) break;
-        } catch (e) {
-          lastErr = e instanceof Error ? e.message : `${e}`;
-        }
+          if (res.ok) { html = await extract(res); if (html) break; }
+        } catch { /* try next */ }
       }
-      if (!html) throw new Error(`All proxies failed (last error: ${lastErr}). The link may be private or Claude.ai changed their format.`);
+
+      // Detect login/marketing page — no conversation content
+      if (!html || html.includes("claude.ai/login") || html.includes("Think fast") || html.includes("Continue with Google")) {
+        throw new Error(
+          "Claude.ai now requires login to view shared conversations — unauthenticated fetching is blocked. " +
+          "Please use the JSON export method instead: go to claude.ai → Settings → Data export."
+        );
+      }
 
       const msgs = parseClaudeSharePage(html);
       if (msgs.length === 0) throw new Error("No messages found in this conversation.");
@@ -685,74 +777,136 @@ function ImportClaudeModal({ onImport, onClose }: {
     }
   };
 
+  const tabBtn = (id: typeof tab, label: string) => (
+    <button
+      type="button"
+      onClick={() => { setTab(id); setError(""); }}
+      style={{
+        flex: 1, padding: "8px 0", borderRadius: 7, fontSize: 13, fontWeight: 500,
+        background: tab === id ? "var(--surface2)" : "transparent",
+        color: tab === id ? "var(--text)" : "var(--text-muted)",
+        border: tab === id ? "1px solid var(--border2)" : "1px solid transparent",
+        transition: "all 0.15s",
+      }}
+    >{label}</button>
+  );
+
   return (
     <div
       style={{ position: "fixed", inset: 0, background: "var(--modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 20, backdropFilter: "blur(4px)" }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div style={{ background: "var(--surface)", border: "1px solid var(--border2)", borderRadius: 12, padding: 28, width: "100%", maxWidth: 480, boxShadow: "var(--shadow)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+      <div style={{ background: "var(--surface)", border: "1px solid var(--border2)", borderRadius: 12, padding: 28, width: "100%", maxWidth: 500, boxShadow: "var(--shadow)" }}>
+        {/* Header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
           <div>
-            <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 22, color: "var(--text)", marginBottom: 4 }}>
-              Import from Claude.ai
-            </h2>
-            <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Paste a public share link to load a conversation.</p>
+            <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 22, color: "var(--text)", marginBottom: 4 }}>Import conversation</h2>
+            <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Bring a Claude.ai conversation into ARC.</p>
           </div>
-          <button onClick={onClose} style={{ color: "var(--text-muted)", display: "flex" }}><X size={18} /></button>
+          <button onClick={onClose} style={{ color: "var(--text-muted)", display: "flex", padding: 4 }}><X size={18} /></button>
         </div>
 
-        <div style={{ marginTop: 18 }}>
-          <input
-            type="url"
-            value={url}
-            onChange={(e) => { setUrl(e.target.value); setError(""); }}
-            onKeyDown={(e) => { if (e.key === "Enter") void handleLoad(); }}
-            placeholder="https://claude.ai/share/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-            autoFocus
-            disabled={loading}
-            style={{
-              width: "100%", padding: "10px 12px",
-              background: "var(--bg)", border: `1.5px solid ${error ? "var(--red)" : "var(--border2)"}`,
-              borderRadius: 8, color: "var(--text)", fontSize: 13, outline: "none",
-              fontFamily: "'JetBrains Mono', monospace",
-              opacity: loading ? 0.6 : 1, boxSizing: "border-box",
-            }}
-            onFocus={(e) => { if (!error) e.currentTarget.style.borderColor = "var(--accent)"; }}
-            onBlur={(e) => { if (!error) e.currentTarget.style.borderColor = "var(--border2)"; }}
-          />
-          {error && (
-            <p style={{ fontSize: 12, color: "var(--red)", marginTop: 8, lineHeight: 1.5 }}>{error}</p>
-          )}
+        {/* Tabs */}
+        <div style={{ display: "flex", background: "var(--bg)", borderRadius: 8, padding: 3, marginBottom: 20, gap: 2 }}>
+          {tabBtn("json", "📄  JSON export  (recommended)")}
+          {tabBtn("link", "🔗  Share link")}
         </div>
 
-        <p style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 10, lineHeight: 1.5 }}>
-          Fetches via public CORS proxies. Only publicly shared links work.
-        </p>
+        {tab === "json" ? (
+          <>
+            {/* How-to steps */}
+            <div style={{ background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 9, padding: "12px 14px", marginBottom: 14 }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: "var(--text)", marginBottom: 8 }}>How to export from Claude.ai:</p>
+              <ol style={{ listStyle: "decimal", paddingLeft: 18, margin: 0, fontSize: 12.5, color: "var(--text-muted)", lineHeight: 1.8 }}>
+                <li>Go to <a href="https://claude.ai/settings" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)" }}>claude.ai/settings</a></li>
+                <li>Click <strong style={{ color: "var(--text)" }}>Data export</strong> and request your data</li>
+                <li>Download the ZIP, open it and find the <code style={{ background: "var(--bg)", padding: "1px 5px", borderRadius: 4 }}>conversations.json</code> file</li>
+                <li>Upload or paste that file below</li>
+              </ol>
+            </div>
 
-        <div style={{ display: "flex", gap: 10, marginTop: 18, justifyContent: "flex-end" }}>
-          <button
-            onClick={onClose}
-            style={{ padding: "8px 18px", border: "1px solid var(--border2)", borderRadius: 7, color: "var(--text-muted)", fontSize: 13 }}
-          >Cancel</button>
-          <button
-            onClick={() => void handleLoad()}
-            disabled={loading || !url.trim()}
-            style={{
-              padding: "8px 20px",
-              background: loading ? "var(--surface2)" : "var(--accent)",
-              borderRadius: 7,
-              color: loading ? "var(--text-muted)" : "var(--bg)",
-              fontWeight: 600, fontSize: 13,
-              display: "flex", alignItems: "center", gap: 6,
-              opacity: !url.trim() ? 0.5 : 1,
-            }}
-          >
-            {loading
-              ? <><span className="dot" /><span className="dot" /><span className="dot" /></>
-              : <><Link2 size={14} />Import</>
-            }
-          </button>
-        </div>
+            <textarea
+              value={jsonText}
+              onChange={(e) => { setJsonText(e.target.value); setError(""); }}
+              placeholder="Paste conversations.json content here…"
+              rows={6}
+              style={{
+                width: "100%", padding: "10px 12px", borderRadius: 8,
+                border: `1.5px solid ${error ? "var(--red)" : "var(--border2)"}`,
+                background: "var(--bg)", color: "var(--text)", fontSize: 12.5,
+                boxSizing: "border-box", fontFamily: "'JetBrains Mono', monospace",
+                resize: "vertical",
+              }}
+            />
+
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
+              <input ref={fileInputRef} type="file" accept="application/json,.json" style={{ display: "none" }} onChange={(e) => void handleFileUpload(e)} />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                style={{ padding: "7px 14px", border: "1px solid var(--border2)", borderRadius: 7, fontSize: 13, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6 }}
+              >
+                <Download size={13} /> Upload .json file
+              </button>
+              {jsonText && <span style={{ fontSize: 12, color: "var(--green)" }}>✓ {Math.round(jsonText.length / 1024)} KB loaded</span>}
+            </div>
+
+            {error && <p style={{ fontSize: 12, color: "var(--red)", marginTop: 10, lineHeight: 1.5 }}>{error}</p>}
+
+            <div style={{ display: "flex", gap: 10, marginTop: 18, justifyContent: "flex-end" }}>
+              <button onClick={onClose} style={{ padding: "8px 18px", border: "1px solid var(--border2)", borderRadius: 7, color: "var(--text-muted)", fontSize: 13 }}>Cancel</button>
+              <button
+                onClick={handleJsonImport}
+                disabled={!jsonText.trim()}
+                style={{ padding: "8px 20px", background: "var(--accent)", borderRadius: 7, color: "var(--bg)", fontWeight: 600, fontSize: 13, opacity: jsonText.trim() ? 1 : 0.45 }}
+              >
+                Import
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Share link warning */}
+            <div style={{ display: "flex", gap: 10, background: "rgba(248,81,73,0.08)", border: "1px solid rgba(248,81,73,0.25)", borderRadius: 9, padding: "10px 14px", marginBottom: 14 }}>
+              <span style={{ fontSize: 16 }}>⚠️</span>
+              <p style={{ fontSize: 12.5, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                Claude.ai now requires login to view shared conversations. Fetching via CORS proxy will likely <strong style={{ color: "var(--text)" }}>not work</strong>. Use the <button type="button" onClick={() => setTab("json")} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", fontWeight: 600, padding: 0, fontSize: 12.5 }}>JSON export method</button> instead.
+              </p>
+            </div>
+
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => { setUrl(e.target.value); setError(""); }}
+              onKeyDown={(e) => { if (e.key === "Enter") void handleLinkLoad(); }}
+              placeholder="https://claude.ai/share/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+              autoFocus
+              disabled={loading}
+              style={{
+                width: "100%", padding: "10px 12px",
+                background: "var(--bg)", border: `1.5px solid ${error ? "var(--red)" : "var(--border2)"}`,
+                borderRadius: 8, color: "var(--text)", fontSize: 13, outline: "none",
+                fontFamily: "'JetBrains Mono', monospace",
+                opacity: loading ? 0.6 : 1, boxSizing: "border-box",
+              }}
+              onFocus={(e) => { if (!error) e.currentTarget.style.borderColor = "var(--accent)"; }}
+              onBlur={(e) => { if (!error) e.currentTarget.style.borderColor = "var(--border2)"; }}
+            />
+
+            {error && <p style={{ fontSize: 12, color: "var(--red)", marginTop: 8, lineHeight: 1.5 }}>{error}</p>}
+
+            <div style={{ display: "flex", gap: 10, marginTop: 18, justifyContent: "flex-end" }}>
+              <button onClick={onClose} style={{ padding: "8px 18px", border: "1px solid var(--border2)", borderRadius: 7, color: "var(--text-muted)", fontSize: 13 }}>Cancel</button>
+              <button
+                onClick={() => void handleLinkLoad()}
+                disabled={loading || !url.trim()}
+                style={{ padding: "8px 20px", background: loading ? "var(--surface2)" : "var(--accent)", borderRadius: 7, color: loading ? "var(--text-muted)" : "var(--bg)", fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 6, opacity: !url.trim() ? 0.5 : 1 }}
+              >
+                {loading ? <><span className="dot" /><span className="dot" /><span className="dot" /></> : <><Link2 size={14} />Try import</>}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
