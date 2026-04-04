@@ -119,6 +119,29 @@ function renderMarkdown(text: string): string {
   });
 }
 
+// Heuristics: determine if a message likely contains Markdown content.
+function isLikelyMarkdown(text: string): boolean {
+  if (!text || typeof text !== "string") return false;
+  // Headers, fenced code, or list markers are strong indicators.
+  return /(^|\n)#{1,6}\s|\n```|^[-*+]\s+/m.test(text);
+}
+
+// Extract a filename from the first Markdown header or fallback to a generic name
+function inferFilenameFromMarkdown(md: string): string | null {
+  if (!md) return null;
+  const m = md.match(/(^|\n)#\s*(.+)/);
+  if (m && m[2]) {
+    const slug = m[2]
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .slice(0, 60);
+    if (slug) return `${slug}.md`;
+  }
+  return null;
+}
+
 
 type RawMsg = { role: "user" | "assistant"; content: string };
 
@@ -355,6 +378,23 @@ function MessageBubble({
               marginLeft: "auto", display: "flex", gap: 4, opacity: 0,
               transition: "opacity 0.15s",
             }}>
+              {/* Download Markdown button for assistant messages */}
+              {!isUser && isLikelyMarkdown(msg.content) && (
+                <button
+                  onClick={() => {
+                    const name = inferFilenameFromMarkdown(msg.content) ?? "message.md";
+                    const blob = new Blob([msg.content], { type: "text/markdown;charset=utf-8" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url; a.download = name; a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  title="Download Markdown"
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 26, height: 26, borderRadius: 6, color: "var(--text-dim)", }}
+                >
+                  <Download size={13} />
+                </button>
+              )}
               <button
                 onClick={() => {
                   void navigator.clipboard.writeText(msg.content).then(() => {
@@ -475,9 +515,18 @@ function MessageBubble({
               }
             }}
             dangerouslySetInnerHTML={{
-              __html: isStreaming
-                ? renderMarkdown(closeUnclosedFences(msg.content)) + '<span class="streaming-cursor"></span>'
-                : renderMarkdown(msg.content),
+              __html: (() => {
+                // Render markdown (with fence-fix) then embed the streaming cursor
+                const base = isStreaming ? renderMarkdown(closeUnclosedFences(msg.content)) : renderMarkdown(msg.content);
+                if (!isStreaming) return base;
+                // If there's a code block, insert the cursor inside the last code block's closing tags
+                const needle = "</code></pre>";
+                const idx = base.lastIndexOf(needle);
+                if (idx !== -1) {
+                  return base.slice(0, idx) + '<span class="streaming-cursor"></span>' + base.slice(idx);
+                }
+                return base + '<span class="streaming-cursor"></span>';
+              })(),
             }}
           />
         )}
@@ -617,7 +666,7 @@ function ImportClaudeModal({ onImport, onClose }: {
           html = await extract(res);
           if (html) break;
         } catch (e) {
-          lastErr = e instanceof Error ? e.message : String(e);
+          lastErr = e instanceof Error ? e.message : `${e}`;
         }
       }
       if (!html) throw new Error(`All proxies failed (last error: ${lastErr}). The link may be private or Claude.ai changed their format.`);
@@ -925,7 +974,7 @@ function Sidebar({ sessions, activeId, collapsed, onToggle, onSelect, onNew, onD
   );
 }
 
-// ── Code Preview Modal ──────────────────────────────────────────────────────
+// Code Preview Modal
 function CodePreviewModal({ code, lang, filename, onClose }: { code: string; lang: string; filename: string; onClose: () => void }) {
   const isSvg = lang === "svg";
 
@@ -985,6 +1034,7 @@ function CodePreviewModal({ code, lang, filename, onClose }: { code: string; lan
               srcDoc={srcDoc}
               sandbox="allow-scripts allow-same-origin"
               title={`Preview — ${lang}`}
+              className="preview-iframe"
               style={{ width: "100%", height: "100%", minHeight: 460, border: "none", display: "block" }}
             />
           )}

@@ -420,3 +420,21 @@ input:focus-visible
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
+
+/* Make images, videos and iframes inside markdown responsive to the containing viewport */
+.md img, .md video, .md iframe {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+/* Force code previews and embedded iframes to respect container sizing */
+.preview-iframe, .md .code-block iframe {
+  max-width: 100%;
+  width: 100%;
+  height: auto !important;
+}
+
+/* Guard against long unbroken text creating horizontal overflow */
+.md { word-break: break-word; }
