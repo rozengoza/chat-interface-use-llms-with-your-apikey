@@ -7,7 +7,7 @@ A clean, self-hostable chat interface powered by the Anthropic API. Built with s
 
 ---
 
-# Why ARC exists?
+### Why ARC exists?
 
 > **Claude Pro is $20/month. The API is pay-per-token. If you're a developer who already has an Anthropic API key — you're very likely overpaying.**
 

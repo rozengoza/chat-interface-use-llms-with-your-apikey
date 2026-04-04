@@ -28,6 +28,8 @@ import {
   Link2,
   Moon,
   Sun,
+  Download,
+  Eye,
 } from "lucide-react";
 import { marked } from "marked";
 import hljs from "highlight.js";
@@ -57,17 +59,49 @@ marked.setOptions({
 
 const renderer = new marked.Renderer();
 
-// SVG icons used in code-block copy buttons (referenced in renderer + click handler)
+// SVG icons used in code-block buttons (referenced in renderer + click handler)
 const COPY_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
 const CHECK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+const DOWNLOAD_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
+const EYE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+
+// Language → file extension map for downloads
+const LANG_EXT: Record<string, string> = {
+  javascript: "js", typescript: "ts", tsx: "tsx", jsx: "jsx",
+  python: "py", bash: "sh", shell: "sh", sh: "sh", zsh: "sh",
+  html: "html", css: "css", json: "json", yaml: "yml", yml: "yml",
+  markdown: "md", md: "md", sql: "sql", rust: "rs", go: "go",
+  java: "java", cpp: "cpp", c: "c", cs: "cs", php: "php",
+  ruby: "rb", swift: "swift", kotlin: "kt", dart: "dart",
+  svg: "svg", xml: "xml", toml: "toml", ini: "ini",
+};
+
+// Languages that can be visually previewed in an iframe
+const PREVIEWABLE = new Set(["html", "svg"]);
+
+// Fix incomplete fenced code blocks during streaming so marked doesn't
+// break out of the code block and render the rest as plain text.
+function closeUnclosedFences(text: string): string {
+  let inFence = false;
+  for (const line of text.split("\n")) {
+    if (/^`{3,}/.test(line)) inFence = !inFence;
+  }
+  return inFence ? text + "\n```" : text;
+}
 
 renderer.code = ({ text, lang }: { text: string; lang?: string }) => {
   const highlighted =
     lang && hljs.getLanguage(lang)
       ? hljs.highlight(text, { language: lang }).value
       : hljs.highlightAuto(text).value;
-  const langLabel = lang || "text";
-  return `<div class="code-block"><div class="code-header"><span>${langLabel}</span><button class="copy-code-btn" title="Copy code">${COPY_SVG}</button></div><pre><code class="hljs">${highlighted}</code></pre></div>`;
+  const langLabel = (lang || "text").toLowerCase();
+  const canPreview = PREVIEWABLE.has(langLabel);
+  const actionBtns = [
+    canPreview ? `<button class="code-action-btn preview-code-btn" title="Preview">${EYE_SVG}</button>` : "",
+    `<button class="code-action-btn download-code-btn" title="Download">${DOWNLOAD_SVG}</button>`,
+    `<button class="code-action-btn copy-code-btn" title="Copy">${COPY_SVG}</button>`,
+  ].join("");
+  return `<div class="code-block" data-lang="${langLabel}"><div class="code-header"><span>${langLabel}</span><div class="code-header-actions">${actionBtns}</div></div><pre><code class="hljs">${highlighted}</code></pre></div>`;
 };
 renderer.link = ({ href, text }: { href: string; text: string }) => {
   // Only allow safe protocols — block javascript:, data:, vbscript:, etc.
@@ -188,21 +222,71 @@ function TokenRow({ msg }: { msg: Message }) {
   );
 }
 
-// Event delegation handler for per-code-block copy buttons
+// Infer a meaningful filename for a code block.
+// Strategy 1: first-line filename comment (e.g. `// App.tsx`, `# server.py`)
+// Strategy 2: nearest preceding heading in the same .md container, slugified
+// Fallback: code.<ext>
+function inferFilename(block: HTMLElement, lang: string): string {
+  const ext = LANG_EXT[lang] ?? lang;
+  const rawCode = block.querySelector("code")?.textContent ?? "";
+  const firstLine = rawCode.split("\n")[0].trim();
+  // Match comment patterns: // foo.ts  |  # foo.py  |  <!-- foo.html -->  |  /* foo.css */
+  const m = firstLine.match(/^(?:\/\/|#|<!--|\{?\/\*)\s*([\w][\w\-. ]*\.\w{1,10})/);
+  if (m) {
+    const candidate = m[1].trim();
+    if (/\.[a-z0-9]+$/i.test(candidate)) return candidate;
+  }
+  // Walk preceding siblings looking for a heading
+  let el: Element | null = block;
+  while ((el = el.previousElementSibling)) {
+    if (/^H[1-4]$/.test(el.tagName)) {
+      const slug = (el.textContent ?? "")
+        .replace(/[^\w\s-]/g, "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .slice(0, 48);
+      if (slug) return `${slug}.${ext}`;
+      break;
+    }
+  }
+  return `code.${ext}`;
+}
+
+// Event delegation handler for all code-block action buttons
 function handleCodeCopy(e: React.MouseEvent<HTMLDivElement>) {
-  const btn = (e.target as Element).closest<HTMLElement>(".copy-code-btn");
-  if (!btn) return;
-  const code = btn.closest(".code-block")?.querySelector("code")?.textContent ?? "";
-  void navigator.clipboard.writeText(code).then(() => {
-    btn.innerHTML = CHECK_SVG;
-    btn.style.color = "var(--green)";
-    setTimeout(() => { btn.innerHTML = COPY_SVG; btn.style.color = ""; }, 1500);
-  });
+  // Copy
+  const copyBtn = (e.target as Element).closest<HTMLElement>(".copy-code-btn");
+  if (copyBtn) {
+    const code = copyBtn.closest(".code-block")?.querySelector("code")?.textContent ?? "";
+    void navigator.clipboard.writeText(code).then(() => {
+      copyBtn.innerHTML = CHECK_SVG;
+      copyBtn.style.color = "var(--green)";
+      setTimeout(() => { copyBtn.innerHTML = COPY_SVG; copyBtn.style.color = ""; }, 1500);
+    });
+    return;
+  }
+  // Download
+  const dlBtn = (e.target as Element).closest<HTMLElement>(".download-code-btn");
+  if (dlBtn) {
+    const block = dlBtn.closest<HTMLElement>(".code-block");
+    if (!block) return;
+    const code = block.querySelector("code")?.textContent ?? "";
+    const lang = block.dataset.lang ?? "text";
+    const filename = inferFilename(block, lang);
+    const blob = new Blob([code], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+    return;
+  }
 }
 
 function MessageBubble({
   msg, isStreaming, onEdit, onRegenerate,
-  isEditing, editText, onEditChange, onEditSave, onEditCancel,
+  isEditing, editText, onEditChange, onEditSave, onEditCancel, onCodePreview,
 }: {
   msg: Message;
   isStreaming?: boolean;
@@ -213,6 +297,7 @@ function MessageBubble({
   onEditChange?: (t: string) => void;
   onEditSave?: () => void;
   onEditCancel?: () => void;
+  onCodePreview?: (code: string, lang: string, filename: string) => void;
 }) {
   const isUser = msg.role === "user";
   const editRef = useRef<HTMLTextAreaElement>(null);
@@ -377,10 +462,21 @@ function MessageBubble({
           <div
             className="md"
             style={{ fontSize: 15.5, color: "var(--text)", lineHeight: 1.78 }}
-            onClick={handleCodeCopy}
+            onClick={(e) => {
+              handleCodeCopy(e);
+              // Preview
+              const pvBtn = (e.target as Element).closest<HTMLElement>(".preview-code-btn");
+              if (pvBtn) {
+                const block = pvBtn.closest<HTMLElement>(".code-block");
+                const code = block?.querySelector("code")?.textContent ?? "";
+                const lang = block?.dataset.lang ?? "html";
+                const filename = block ? inferFilename(block, lang) : `code.${LANG_EXT[lang] ?? lang}`;
+                onCodePreview?.(code, lang, filename);
+              }
+            }}
             dangerouslySetInnerHTML={{
               __html: isStreaming
-                ? renderMarkdown(msg.content) + '<span class="streaming-cursor"></span>'
+                ? renderMarkdown(closeUnclosedFences(msg.content)) + '<span class="streaming-cursor"></span>'
                 : renderMarkdown(msg.content),
             }}
           />
@@ -829,6 +925,75 @@ function Sidebar({ sessions, activeId, collapsed, onToggle, onSelect, onNew, onD
   );
 }
 
+// ── Code Preview Modal ──────────────────────────────────────────────────────
+function CodePreviewModal({ code, lang, filename, onClose }: { code: string; lang: string; filename: string; onClose: () => void }) {
+  const isSvg = lang === "svg";
+
+  // For HTML previews, inject a base style so the iframe doesn't look broken
+  const srcDoc = isSvg ? undefined : `<!doctype html><html><head><meta charset="utf-8"><style>
+    body{margin:0;padding:16px;font-family:system-ui,sans-serif;background:#fff;color:#111;}
+    *{box-sizing:border-box;}
+  </style></head><body>${code}</body></html>`;
+
+  return (
+    <div
+      style={{ position: "fixed", inset: 0, background: "var(--modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 60, padding: 24, backdropFilter: "blur(6px)" }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div style={{ background: "var(--surface)", border: "1px solid var(--border2)", borderRadius: 12, width: "100%", maxWidth: 900, maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--shadow)", overflow: "hidden" }}>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Eye size={14} style={{ color: "var(--accent)" }} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Preview</span>
+            <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: "var(--text-dim)", background: "var(--surface2)", border: "1px solid var(--border)", padding: "1px 8px", borderRadius: 12 }}>{filename}</span>
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <button
+              onClick={() => {
+                const blob = new Blob([code], { type: "text/plain" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = filename; a.click();
+                URL.revokeObjectURL(url);
+              }}
+              title="Download file"
+              style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 11px", border: "1px solid var(--border)", borderRadius: 7, color: "var(--text-muted)", fontSize: 12 }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface2)"; e.currentTarget.style.color = "var(--text)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}
+            >
+              <Download size={12} />Download
+            </button>
+            <button onClick={onClose} style={{ display: "flex", color: "var(--text-muted)", padding: 4 }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-muted)"; }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+
+        {/* Preview area */}
+        <div style={{ flex: 1, overflow: "auto", background: "#ffffff", minHeight: 0 }}>
+          {isSvg ? (
+            <div
+              style={{ padding: 24, display: "flex", alignItems: "center", justifyContent: "center", minHeight: 200 }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(code) }}
+            />
+          ) : (
+            <iframe
+              srcDoc={srcDoc}
+              sandbox="allow-scripts allow-same-origin"
+              title={`Preview — ${lang}`}
+              style={{ width: "100%", height: "100%", minHeight: 460, border: "none", display: "block" }}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App({ user, onLogout }: { user: UserProfile; onLogout: () => void }) {
   // Multi-session state
   const [sessions, setSessions] = useState<Conversation[]>(() => loadSessions(user.id));
@@ -848,6 +1013,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
   const [thinking, setThinking] = useState(false);
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [previewCode, setPreviewCode] = useState<{ code: string; lang: string; filename: string } | null>(null);
   const [model, setModel] = useState(DEFAULT_MODEL);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">(
@@ -1434,6 +1600,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
                   onEditChange={setEditText}
                   onEditSave={() => void handleEditSave()}
                   onEditCancel={handleEditCancel}
+                  onCodePreview={(code, lang, filename) => setPreviewCode({ code, lang, filename })}
                 />
               ))}
               {thinking && <Thinking />}
@@ -1555,6 +1722,9 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
       )}
       {showImport && (
         <ImportClaudeModal onImport={handleImportConversation} onClose={() => setShowImport(false)} />
+      )}
+      {previewCode && (
+        <CodePreviewModal code={previewCode.code} lang={previewCode.lang} filename={previewCode.filename} onClose={() => setPreviewCode(null)} />
       )}
     </div>
   );

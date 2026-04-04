@@ -202,6 +202,31 @@ body::before {
   letter-spacing: 0.06em;
   user-select: none;
 }
+.code-header-actions {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+.code-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 5px;
+  border-radius: 5px;
+  color: var(--text-dim);
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+.md .code-block:hover .code-action-btn {
+  opacity: 1;
+}
+.code-action-btn:hover {
+  color: var(--text-muted) !important;
+  background: rgba(255,255,255,0.08);
+}
+/* legacy single button */
 .copy-code-btn {
   display: flex;
   align-items: center;
