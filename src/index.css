@@ -86,8 +86,10 @@ html, body, #root {
 .md h3 { font-size: 1em;    font-weight: 600; margin: 1.1em 0 0.35em; color: var(--text-muted); }
 .md h4 { font-size: 0.85em; font-weight: 600; margin: 1em 0 0.3em;    color: var(--text-dim);   text-transform: uppercase; letter-spacing: 0.07em; }
 
-/* Remove top margin when heading is the very first element */
-.md > *:first-child { margin-top: 0; }
+/* Inline code only — not inside a code block */
+.md :not(pre) > code {
+  white-space: nowrap;
+}
 
 .md p { margin-bottom: 0.9em; line-height: 1.78; }
 .md p:last-child { margin-bottom: 0; }
@@ -112,7 +114,6 @@ html, body, #root {
   border: 1px solid var(--inline-code-bd);
   transition: background 0.2s, color 0.2s;
   vertical-align: baseline;
-  white-space: nowrap;
 }
 
 .md .code-block {
@@ -165,14 +166,19 @@ html, body, #root {
   padding: 1em 1.1em;
   overflow-x: auto;
   margin: 0;
+  white-space: pre;
 }
 .md pre code {
   background: none;
   border: none;
   padding: 0;
-  color: #e6edf3; /* always light against dark code-bg */
+  color: #e6edf3;
   font-size: 0.85em;
   line-height: 1.65;
+  white-space: pre !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important; 
+  display: block;
 }
 .md pre code.hljs {
   background: transparent;
