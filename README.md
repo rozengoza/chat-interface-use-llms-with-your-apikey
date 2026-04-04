@@ -69,7 +69,7 @@ VITE_ALLOWED_USER_1=guest
 
 The easiest way to deploy your own instance:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/rozengoza/arc)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey.git)
 
 1. Fork this repository
 2. Import it into [Vercel](https://vercel.com/)
