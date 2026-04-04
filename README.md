@@ -7,6 +7,46 @@ A clean, self-hostable chat interface powered by the Anthropic API. Built with s
 
 ---
 
+# Why ARC exists?
+
+> **Claude Pro is $20/month. The API is pay-per-token. If you're a developer who already has an Anthropic API key — you're very likely overpaying.**
+
+ARC is a clean chat UI that plugs straight into your API key. No subscription. No monthly commitment. You pay exactly for what you use, nothing more.
+
+It exists for one specific moment: you're deep in a debugging session, Claude's free tier cuts off, and you don't want to context-switch or wait for the limit to reset. You just want to keep going.
+
+Claude is the best coding AI I've used. It doesn't just fix the line you pointed at — it explains what was wrong three decisions ago. For developers across any stack, nothing else is close.
+
+---
+
+### Who this is for
+
+→ Devs with an API key who don't want to pay $20/month for a chat UI  
+→ Anyone who hits free limits mid-work and wants to just continue  
+→ Developers who want full API access — longer context, no rate limits, custom prompts  
+
+### Who this is not for
+
+→ Non-developers without an API key  
+→ Heavy daily users where Pro pricing actually makes sense  
+
+---
+
+### On Security
+
+> Your key is entered in the browser and calls Anthropic's API directly. It never touches any server I own. It's never stored anywhere. It dies when you close the tab.
+
+The code is fully open source — open DevTools, watch the network tab, every request goes to `api.anthropic.com` and nowhere else. **You don't have to trust me. That's the point.**
+
+---
+
+Open source. MIT. Self-hostable in 3 commands.  
+🔗 **Live Demo:** [arc-lime.vercel.app](https://arc-lime.vercel.app/) — sign in with username `guest`  
+
+Feedback welcome — especially from the skeptics.
+
+---
+
 ## Features
 
 - 💬 **Session-based chat history** — conversations persist across sessions
