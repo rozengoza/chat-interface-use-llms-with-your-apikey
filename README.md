@@ -81,7 +81,7 @@ This means:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/rozengoza/arc.git
+git clone https://github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey.git
 cd arc
 
 # 2. Install dependencies
