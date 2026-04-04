@@ -27,7 +27,7 @@ Claude is the best coding AI I've used. It doesn't just fix the line you pointed
 
 ### Who this is not for
 
-→ Non-developers without an API key  
+→ Non-developers/developers without an API key  
 → Heavy daily users where Pro pricing actually makes sense  
 
 ---
