@@ -30,6 +30,7 @@ import {
   Sun,
   Download,
   Eye,
+  Settings,
 } from "lucide-react";
 import { marked } from "marked";
 import hljs from "highlight.js";
@@ -47,6 +48,9 @@ import {
   saveApiKey,
   createNewSession,
   deriveTitle,
+  loadTokenSettings,
+  saveTokenSettings,
+  type TokenSettings,
 } from "./store";
 import { streamChat, MODELS, DEFAULT_MODEL } from "./api";
 import faviconUrl from "./assets/favicon.svg";
@@ -1044,6 +1048,111 @@ function CodePreviewModal({ code, lang, filename, onClose }: { code: string; lan
   );
 }
 
+// ── Settings Modal ───────────────────────────────────────────────────────────
+const TOKEN_OPTIONS = Array.from({ length: 10 }, (_, i) => (i + 1) * 1024);
+
+function SettingsModal({
+  current,
+  onSave,
+  onClose,
+}: {
+  current: TokenSettings;
+  onSave: (s: TokenSettings) => void;
+  onClose: () => void;
+}) {
+  const [draft, setDraft] = useState<TokenSettings>({ ...current });
+
+  const selectStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "9px 12px",
+    background: "var(--surface2)",
+    border: "1px solid var(--border2)",
+    borderRadius: 8,
+    color: "var(--text)",
+    fontSize: 13,
+    fontFamily: "'JetBrains Mono', monospace",
+    outline: "none",
+    cursor: "pointer",
+    appearance: "none",
+  };
+
+  return (
+    <div
+      style={{ position: "fixed", inset: 0, background: "var(--modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 70, padding: 20, backdropFilter: "blur(4px)" }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div style={{ background: "var(--surface)", border: "1px solid var(--border2)", borderRadius: 12, padding: 28, width: "100%", maxWidth: 420, boxShadow: "var(--shadow)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+          <div>
+            <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 22, color: "var(--text)", marginBottom: 4 }}>Settings</h2>
+            <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Token budget per request</p>
+          </div>
+          <button onClick={onClose} style={{ color: "var(--text-muted)", display: "flex", padding: 4 }}>
+            <X size={18} />
+          </button>
+        </div>
+
+        <div style={{ marginBottom: 18 }}>
+          <label style={{ display: "block", fontSize: 12, fontWeight: 600, letterSpacing: "0.05em", color: "var(--text-dim)", textTransform: "uppercase", marginBottom: 8 }}>
+            Max input tokens
+          </label>
+          <div style={{ position: "relative" }}>
+            <select
+              value={draft.inputTokens}
+              onChange={(e) => setDraft((d) => ({ ...d, inputTokens: Number(e.target.value) }))}
+              style={selectStyle}
+            >
+              {TOKEN_OPTIONS.map((v) => (
+                <option key={v} value={v}>{v.toLocaleString()} tokens</option>
+              ))}
+            </select>
+            <ChevronDown size={13} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-dim)", pointerEvents: "none" }} />
+          </div>
+          <p style={{ fontSize: 11.5, color: "var(--text-dim)", marginTop: 6 }}>
+            Older messages are trimmed when history exceeds this limit.
+          </p>
+        </div>
+
+        <div style={{ marginBottom: 28 }}>
+          <label style={{ display: "block", fontSize: 12, fontWeight: 600, letterSpacing: "0.05em", color: "var(--text-dim)", textTransform: "uppercase", marginBottom: 8 }}>
+            Max output tokens
+          </label>
+          <div style={{ position: "relative" }}>
+            <select
+              value={draft.outputTokens}
+              onChange={(e) => setDraft((d) => ({ ...d, outputTokens: Number(e.target.value) }))}
+              style={selectStyle}
+            >
+              {TOKEN_OPTIONS.map((v) => (
+                <option key={v} value={v}>{v.toLocaleString()} tokens</option>
+              ))}
+            </select>
+            <ChevronDown size={13} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-dim)", pointerEvents: "none" }} />
+          </div>
+          <p style={{ fontSize: 11.5, color: "var(--text-dim)", marginTop: 6 }}>
+            Maximum length of a single response. Higher = can be more expensive.
+          </p>
+        </div>
+
+        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+          <button
+            onClick={onClose}
+            style={{ padding: "8px 18px", border: "1px solid var(--border2)", borderRadius: 7, color: "var(--text-muted)", fontSize: 13 }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onSave(draft)}
+            style={{ padding: "8px 20px", background: "var(--accent)", borderRadius: 7, color: "var(--bg)", fontSize: 13, fontWeight: 600 }}
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App({ user, onLogout }: { user: UserProfile; onLogout: () => void }) {
   // Multi-session state
   const [sessions, setSessions] = useState<Conversation[]>(() => loadSessions(user.id));
@@ -1063,6 +1172,8 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
   const [thinking, setThinking] = useState(false);
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [tokenSettings, setTokenSettings] = useState<TokenSettings>(() => loadTokenSettings(user.id));
   const [previewCode, setPreviewCode] = useState<{ code: string; lang: string; filename: string } | null>(null);
   const [model, setModel] = useState(DEFAULT_MODEL);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
@@ -1301,8 +1412,8 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
         setStreamingMsgId(null);
         streamBuf.current = "";
       },
-    }, ctrl.signal, model);
-  }, [apiKey, model]);
+    }, ctrl.signal, model, { inputTokens: tokenSettings.inputTokens, outputTokens: tokenSettings.outputTokens });
+  }, [apiKey, model, tokenSettings]);
 
   const handleSend = useCallback(async () => {
     const text = input.trim();
@@ -1559,6 +1670,22 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
               {apiKey ? "Key set" : "Add key"}
             </button>
 
+            <button
+              onClick={() => setShowSettings(true)}
+              title="Settings"
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center",
+                width: 32, height: 32, borderRadius: 7,
+                border: "1px solid var(--border)",
+                color: "var(--text-muted)",
+                transition: "background 0.15s, color 0.15s",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface2)"; e.currentTarget.style.color = "var(--text)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}
+            >
+              <Settings size={14} />
+            </button>
+
             <div style={{
               display: "flex", alignItems: "center", gap: 7,
               padding: "4px 10px 4px 6px",
@@ -1769,6 +1896,13 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
 
       {showKeyModal && (
         <ApiKeyModal current={apiKey} onSave={handleSaveKey} onClose={() => setShowKeyModal(false)} />
+      )}
+      {showSettings && (
+        <SettingsModal
+          current={tokenSettings}
+          onSave={(s) => { setTokenSettings(s); saveTokenSettings(user.id, s); setShowSettings(false); }}
+          onClose={() => setShowSettings(false)}
+        />
       )}
       {showImport && (
         <ImportClaudeModal onImport={handleImportConversation} onClose={() => setShowImport(false)} />

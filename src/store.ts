@@ -39,6 +39,29 @@ export function saveApiKey(userId: string, key: string): void {
   localStorage.setItem(k(userId, "api_key"), key);
 }
 
+// Token Settings
+
+export interface TokenSettings {
+  inputTokens: number;
+  outputTokens: number;
+}
+
+const TOKEN_DEFAULTS: TokenSettings = { inputTokens: 2048, outputTokens: 2048 };
+
+export function loadTokenSettings(userId: string): TokenSettings {
+  try {
+    const raw = localStorage.getItem(k(userId, "token_settings"));
+    if (raw) return { ...TOKEN_DEFAULTS, ...(JSON.parse(raw) as Partial<TokenSettings>) };
+  } catch {
+    /* ignore */
+  }
+  return { ...TOKEN_DEFAULTS };
+}
+
+export function saveTokenSettings(userId: string, s: TokenSettings): void {
+  localStorage.setItem(k(userId, "token_settings"), JSON.stringify(s));
+}
+
 // Helpers
 
 export function createNewSession(): Conversation {

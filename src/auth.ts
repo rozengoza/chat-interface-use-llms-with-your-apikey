@@ -30,12 +30,12 @@ const ITERATIONS  = 200_000;
 // Allowlist
 // Usernames are loaded from .env.local at build time (gitignored).
 // Set VITE_ALLOWED_USER_1 and VITE_ALLOWED_USER_2 in .env.local.
-export const ALLOWED_USERNAMES: [string, string, string, string] = [
-  import.meta.env.VITE_ALLOWED_USER_1,
-  import.meta.env.VITE_ALLOWED_USER_2,
-  import.meta.env.VITE_ALLOWED_USER_3,
-  import.meta.env.VITE_ALLOWED_USER_4,
-];
+// export const ALLOWED_USERNAMES: [string, string, string, string] = [
+//   import.meta.env.VITE_ALLOWED_USER_1,
+//   import.meta.env.VITE_ALLOWED_USER_2,
+//   import.meta.env.VITE_ALLOWED_USER_3,
+//   import.meta.env.VITE_ALLOWED_USER_4,
+// ];
 
 // Crypto helpers
 
@@ -104,10 +104,10 @@ export async function registerUser(
   color: string,
   emoji: string
 ): Promise<UserProfile> {
-  const allowed = ALLOWED_USERNAMES.map((n) => n.toLowerCase());
-  if (!allowed.includes(username.trim().toLowerCase())) {
-    throw new Error("This username is not authorised to access arc.");
-  }
+  // const allowed = ALLOWED_USERNAMES.map((n) => n.toLowerCase());
+  // if (!allowed.includes(username.trim().toLowerCase())) {
+  //   throw new Error("This username is not authorised to access arc.");
+  // }
   const users = loadUsers();
   if (users.find((u) => u.username.toLowerCase() === username.trim().toLowerCase())) {
     throw new Error("Username already taken.");
@@ -133,10 +133,10 @@ export async function loginUser(
   username: string,
   password: string
 ): Promise<UserProfile> {
-  const allowed = ALLOWED_USERNAMES.map((n) => n.toLowerCase());
-  if (!allowed.includes(username.trim().toLowerCase())) {
-    throw new Error("This username is not authorised to access arc.");
-  }
+  // const allowed = ALLOWED_USERNAMES.map((n) => n.toLowerCase());
+  // if (!allowed.includes(username.trim().toLowerCase())) {
+  //   throw new Error("This username is not authorised to access arc.");
+  // }
   const users = loadUsers();
   const user = users.find((u) => u.username.toLowerCase() === username.trim().toLowerCase());
   if (!user) throw new Error("Account not found. Register first.");
@@ -171,4 +171,19 @@ export function getActiveSession(): { session: Session; user: UserProfile } | nu
 
 export function logout(): void {
   sessionStorage.removeItem(SESSION_KEY);
+}
+
+// Reset/change password for an existing username.
+// Requires the current password to verify identity, then writes a new salt+hash.
+export async function resetPassword(username: string, currentPassword: string, newPassword: string): Promise<void> {
+  const users = loadUsers();
+  const idx = users.findIndex((u) => u.username.toLowerCase() === username.trim().toLowerCase());
+  if (idx === -1) throw new Error("Account not found.");
+  const user = users[idx];
+  const currentHash = await deriveKey(currentPassword, user.passwordSalt);
+  if (currentHash !== user.passwordHash) throw new Error("Current password is incorrect.");
+  const newSalt = randomHex(16);
+  const newHash = await deriveKey(newPassword, newSalt);
+  users[idx] = { ...user, passwordSalt: newSalt, passwordHash: newHash };
+  saveUsers(users);
 }

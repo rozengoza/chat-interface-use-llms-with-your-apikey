@@ -71,7 +71,7 @@ function estimateTokens(text: string): number {
 
 // Maximum input tokens to send (system prompt + history).
 // Leaves 4096 for the output and keeps total well within a cost-conscious limit.
-const MAX_INPUT_TOKENS = 2000;
+const DEFAULT_MAX_INPUT_TOKENS = 2048;
 
 // Build the API message list with smart caching.
 // Anthropic allows a maximum of 4 cache_control blocks total (including the
@@ -79,7 +79,7 @@ const MAX_INPUT_TOKENS = 2000;
 // messages. We apply cache markers only to the 3 most-recent non-last messages
 // so older turns get re-read from cache without exceeding the limit.
 // Older messages are dropped when the estimated input token budget is exceeded.
-function buildApiMessages(messages: Message[]) {
+function buildApiMessages(messages: Message[], maxInputTokens = DEFAULT_MAX_INPUT_TOKENS) {
   // Estimate tokens for each message (text content only).
   const msgTokens = messages.map((m) => {
     let text = m.content;
@@ -92,7 +92,7 @@ function buildApiMessages(messages: Message[]) {
 
   // Always keep the last message (current user turn). Then add as many
   // prior messages as fit within the budget, working backwards.
-  const budget = MAX_INPUT_TOKENS - estimateTokens(SYSTEM_PROMPT);
+  const budget = maxInputTokens - estimateTokens(SYSTEM_PROMPT);
   let used = msgTokens[messages.length - 1] ?? 0;
   let startIdx = messages.length - 1;
   for (let i = messages.length - 2; i >= 0; i--) {
@@ -164,8 +164,9 @@ export async function streamChat(
   callbacks: StreamCallbacks,
   abortSignal?: AbortSignal,
   model = DEFAULT_MODEL,
+  tokenOpts?: { inputTokens?: number; outputTokens?: number },
 ): Promise<void> {
-  const maxOutputTokens = model.includes("sonnet") ? 1500 : 2048;
+  const maxOutputTokens = tokenOpts?.outputTokens ?? (model.includes("sonnet") ? 2048 : 2048);
 
   if (!apiKey.trim()) {
     callbacks.onError("No API key set. Click the key icon to configure.");
@@ -197,7 +198,7 @@ export async function streamChat(
             cache_control: { type: "ephemeral" },
           },
         ],
-        messages: buildApiMessages(messages),
+        messages: buildApiMessages(messages, tokenOpts?.inputTokens),
       }),
     });
 
