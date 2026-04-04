@@ -6,10 +6,8 @@ export interface ModelOption {
 }
 
 export const MODELS: ModelOption[] = [
-  { id: "claude-haiku-3", label: "Claude Haiku 3" },
-  { id: "claude-haiku-3-5",       label: "Claude Haiku 3.5" },
-  { id: "claude-haiku-4-5",       label: "Claude Haiku 4.5" },
-  { id: "claude-sonnet-4-6",      label: "Claude Sonnet 4.6" },
+  { id: "claude-haiku-4-5", label: "Claude Haiku 4.5" },
+  { id: "claude-sonnet-4-6", label: "Claude Sonnet 4.6" },
 ];
 
 export const DEFAULT_MODEL = MODELS[0].id;
@@ -81,7 +79,11 @@ function buildApiMessages(messages: Message[]) {
         if (att.type === "image") {
           content.push({
             type: "image",
-            source: { type: "base64", media_type: att.mimeType, data: att.data },
+            source: {
+              type: "base64",
+              media_type: att.mimeType,
+              data: att.data,
+            },
           });
         }
       }
@@ -90,10 +92,14 @@ function buildApiMessages(messages: Message[]) {
     // Build text — prepend text-file attachments inline
     let text = m.content;
     if (m.attachments) {
-      const textFiles = m.attachments.filter((a: Attachment) => a.type === "text");
+      const textFiles = m.attachments.filter(
+        (a: Attachment) => a.type === "text",
+      );
       if (textFiles.length > 0) {
         const block = textFiles
-          .map((f: Attachment) => `[file: ${f.name}]\n\`\`\`\n${f.data}\n\`\`\``)
+          .map(
+            (f: Attachment) => `[file: ${f.name}]\n\`\`\`\n${f.data}\n\`\`\``,
+          )
           .join("\n\n");
         text = block + "\n\n" + text;
       }
@@ -114,7 +120,7 @@ export async function streamChat(
   apiKey: string,
   callbacks: StreamCallbacks,
   abortSignal?: AbortSignal,
-  model = DEFAULT_MODEL
+  model = DEFAULT_MODEL,
 ): Promise<void> {
   if (!apiKey.trim()) {
     callbacks.onError("No API key set. Click the key icon to configure.");
@@ -234,8 +240,6 @@ export async function streamChat(
     callbacks.onDone(tokens);
   } catch (err) {
     if ((err as { name?: string }).name === "AbortError") return;
-    callbacks.onError(
-      err instanceof Error ? err.message : "Unexpected error"
-    );
+    callbacks.onError(err instanceof Error ? err.message : "Unexpected error");
   }
 }

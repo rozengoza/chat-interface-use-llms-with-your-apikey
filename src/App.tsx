@@ -518,11 +518,38 @@ function ImportClaudeModal({ onImport, onClose }: {
     setLoading(true);
     setError("");
     try {
-      // corsproxy.io proxies the request and adds CORS headers
-      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(`https://claude.ai/share/${shareId}`)}`;
-      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(15_000) });
-      if (!res.ok) throw new Error(`Proxy returned HTTP ${res.status} — the link may be invalid or private.`);
-      const html = await res.text();
+      const targetUrl = `https://claude.ai/share/${shareId}`;
+      // Try multiple CORS proxies in order until one succeeds
+      const proxies: Array<(u: string) => { url: string; extract: (r: Response) => Promise<string> }> = [
+        (u) => ({
+          url: `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+          extract: async (r) => { const j = await r.json() as { contents: string }; return j.contents; },
+        }),
+        (u) => ({
+          url: `https://corsproxy.io/?${encodeURIComponent(u)}`,
+          extract: (r) => r.text(),
+        }),
+        (u) => ({
+          url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+          extract: (r) => r.text(),
+        }),
+      ];
+
+      let html = "";
+      let lastErr = "";
+      for (const makeProxy of proxies) {
+        try {
+          const { url: proxyUrl, extract } = makeProxy(targetUrl);
+          const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(12_000) });
+          if (!res.ok) { lastErr = `HTTP ${res.status}`; continue; }
+          html = await extract(res);
+          if (html) break;
+        } catch (e) {
+          lastErr = e instanceof Error ? e.message : String(e);
+        }
+      }
+      if (!html) throw new Error(`All proxies failed (last error: ${lastErr}). The link may be private or Claude.ai changed their format.`);
+
       const msgs = parseClaudeSharePage(html);
       if (msgs.length === 0) throw new Error("No messages found in this conversation.");
       onImport(msgs);
@@ -574,7 +601,7 @@ function ImportClaudeModal({ onImport, onClose }: {
         </div>
 
         <p style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 10, lineHeight: 1.5 }}>
-          The conversation is fetched via corsproxy.io. Only publicly shared links work.
+          Fetches via public CORS proxies. Only publicly shared links work.
         </p>
 
         <div style={{ display: "flex", gap: 10, marginTop: 18, justifyContent: "flex-end" }}>
