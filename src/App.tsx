@@ -1287,7 +1287,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
               value={model}
               onChange={(e) => {
                 if (e.target.value.includes("sonnet")) {
-                  if (!confirm("Use Sonnet for intensive tasks. (~10x more expensive than Haiku)")) return;
+                  if (!confirm("Use Sonnet for intensive tasks. (more powerful than Haiku)")) return;
                 }
                 setModel(e.target.value)
               }}
