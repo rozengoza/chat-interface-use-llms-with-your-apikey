@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <!-- Aquamarine gradient for A -->
+    <linearGradient id="aquaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7FFFD4;stop-opacity:1" />
+      <stop offset="40%" style="stop-color:#48D1CC;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#20B2AA;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Peridot gradient for R -->
+    <linearGradient id="peridotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E8F5A3;stop-opacity:1" />
+      <stop offset="40%" style="stop-color:#B5CC18;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8DB600;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Blended gradient for C -->
+    <linearGradient id="blendGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7FFFD4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#B5CC18;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Gemstone facet filter -->
+    <filter id="gemShine">
+      <feSpecularLighting result="shine" in="SourceGraphic" 
+        specularExponent="30" lighting-color="white">
+        <fePointLight x="15" y="10" z="40" />
+      </feSpecularLighting>
+      <feComposite in="shine" in2="SourceGraphic" operator="in" />
+    </filter>
+  </defs>
+
+  <!-- Background: dark deep jewel tone -->
+  <rect width="64" height="64" rx="12" ry="12" fill="#0D1F1E" />
+
+  <!-- Subtle inner glow ring -->
+  <rect width="60" height="60" x="2" y="2" rx="10" ry="10"
+    fill="none" stroke="#48D1CC" stroke-width="0.5" opacity="0.3" />
+
+  <!-- === LETTER A (Aquamarine) === -->
+  <!-- Left stroke -->
+  <polygon points="8,52 14,12 17,12 13,52"
+    fill="url(#aquaGrad)" opacity="0.95"/>
+  <!-- Right stroke -->
+  <polygon points="17,12 20,12 26,52 20,52"
+    fill="url(#aquaGrad)" opacity="0.85"/>
+  <!-- Crossbar -->
+  <rect x="10" y="34" width="14" height="4" rx="1"
+    fill="url(#aquaGrad)" opacity="1"/>
+  <!-- Facet highlight on A -->
+  <polygon points="14,12 17,12 15.5,22"
+    fill="white" opacity="0.2"/>
+
+  <!-- === LETTER R (Peridot) === -->
+  <!-- Vertical stem -->
+  <rect x="28" y="12" width="5" height="40" rx="1"
+    fill="url(#peridotGrad)" opacity="0.95"/>
+  <!-- Bump top -->
+  <path d="M33,12 Q44,12 44,22 Q44,32 33,32 L33,12 Z"
+    fill="url(#peridotGrad)" opacity="0.9"/>
+  <!-- Bump inner cutout (dark) -->
+  <path d="M33,16 Q40,16 40,22 Q40,28 33,28 L33,16 Z"
+    fill="#0D1F1E"/>
+  <!-- Leg diagonal -->
+  <polygon points="33,30 38,30 44,52 38,52"
+    fill="url(#peridotGrad)" opacity="0.85"/>
+  <!-- Facet highlight on R -->
+  <polygon points="33,12 44,12 44,16 37,16"
+    fill="white" opacity="0.15"/>
+
+  <!-- === LETTER C (Blended) === -->
+  <path d="M58,22 Q54,12 47,12 Q40,12 40,32 Q40,52 47,52 Q54,52 58,42"
+    fill="none" stroke="url(#blendGrad)"
+    stroke-width="5" stroke-linecap="round"/>
+  <!-- C inner highlight -->
+  <path d="M56,24 Q53,16 47,16"
+    fill="none" stroke="white"
+    stroke-width="1" stroke-linecap="round" opacity="0.25"/>
+
+  <!-- Gemstone sparkle dots -->
+  <circle cx="10" cy="10" r="1" fill="#7FFFD4" opacity="0.6"/>
+  <circle cx="54" cy="56" r="1" fill="#B5CC18" opacity="0.6"/>
+  <circle cx="54" cy="10" r="0.8" fill="#7FFFD4" opacity="0.4"/>
+  <circle cx="10" cy="56" r="0.8" fill="#B5CC18" opacity="0.4"/>
+</svg>
