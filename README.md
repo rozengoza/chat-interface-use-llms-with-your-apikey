@@ -89,7 +89,8 @@ The easiest way to deploy your own instance:
 
 ## Preview
 
-[![ARC Preview](https://shot.screenshotapi.net/screenshot?url=https%3A%2F%2Farc-lime.vercel.app&width=1280&height=800&output=image&file_type=png&wait_for_event=load)](https://arc-lime.vercel.app)
+<img width="1687" height="912" alt="image" src="https://github.com/user-attachments/assets/18956cc2-96e0-4c80-b172-3b10f9a582ec" />
+
 
 ---
 
