@@ -13,7 +13,7 @@ const PRESET_COLORS = [
   "#79c0ff", // sky
 ];
 
-const PRESET_EMOJIS = ["🐱", "🐶", "💠", "💚", "🦊", "🐺", "🦁", "🐼", "🦋", "🌙", "⚡", "🔥", "🌊", "🌿"];
+const PRESET_EMOJIS = ["🐱", "🐶", "💠", "🩵", "💚", "🦊", "🐺", "🦋", "🌙", "🌊", "🌿"];
 
 interface LoginPageProps {
   onLogin: (user: UserProfile) => void;
