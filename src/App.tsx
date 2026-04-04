@@ -1243,10 +1243,22 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
     const files = e.target.files;
     if (!files) return;
 
+    // Claude vision only accepts these four types
+    const SUPPORTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
+
+    // Normalize non-standard aliases so the API never rejects them
+    function normalizeImageMime(raw: string): string {
+      if (raw === "image/jpg") return "image/jpeg";  // non-standard alias
+      if (raw === "image/jfif") return "image/jpeg";
+      if (raw === "image/pjpeg") return "image/jpeg";
+      return raw;
+    }
+
     Array.from(files).forEach((file) => {
       if (file.size > 2 * 1024 * 1024) return; // skip > 2 MB
 
-      const isImage = file.type.startsWith("image/");
+      const mime = normalizeImageMime(file.type);
+      const isImage = SUPPORTED_IMAGE_TYPES.has(mime);
       const reader = new FileReader();
 
       if (isImage) {
@@ -1255,11 +1267,13 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
           const base64 = result.split(",")[1];
           setAttachments((prev) => [...prev, {
             id: uuid(), name: file.name, type: "image",
-            data: base64, mimeType: file.type, size: file.size,
+            data: base64, mimeType: mime, size: file.size,
           }]);
         };
         reader.readAsDataURL(file);
       } else {
+        // Unsupported image types (SVG, BMP, TIFF, AVIF, WebP-animated…)
+        // and all text files are sent as inline text content
         reader.onload = () => {
           setAttachments((prev) => [...prev, {
             id: uuid(), name: file.name, type: "text",
