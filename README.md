@@ -83,7 +83,7 @@ The easiest way to deploy your own instance:
 | Model | Description |
 |---|---|
 | `claude-sonnet-4-6` | Powerful and balanced — great for most tasks |
-| `claude-haiku-3-5` | Fast and lightweight — ideal for quick queries |
+| `claude-haiku-4-5` | Fast and lightweight — ideal for quick queries |
 
 ---
 
