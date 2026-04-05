@@ -1827,32 +1827,31 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
             )}
           </div>
 
-          <button
-            onClick={handleExportConversation}
-            disabled={!hasMessages}
-            title="Export conversation as JSON"
-            style={{
-              display: "flex", alignItems: "center", justifyContent: "center",
-              width: 32, height: 32, borderRadius: 7,
-              border: "1px solid var(--border)",
-              color: "var(--text-muted)",
-              opacity: hasMessages ? 1 : 0.35,
-              transition: "background 0.15s, color 0.15s",
-            }}
-            onMouseEnter={(e) => {
-              if (!hasMessages) return;
-              e.currentTarget.style.background = "var(--surface2)";
-              e.currentTarget.style.color = "var(--text)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.color = "var(--text-muted)";
-            }}
-          >
-            <Download size={14} />
-          </button>
-
           <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
+            <button
+              onClick={handleExportConversation}
+              disabled={!hasMessages}
+              title="Export conversation as JSON"
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center",
+                width: 32, height: 32, borderRadius: 7,
+                border: "1px solid var(--border)",
+                color: "var(--text-muted)",
+                opacity: hasMessages ? 1 : 0.35,
+                transition: "background 0.15s, color 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                if (!hasMessages) return;
+                e.currentTarget.style.background = "var(--surface2)";
+                e.currentTarget.style.color = "var(--text)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.color = "var(--text-muted)";
+              }}
+            >
+              <Download size={14} />
+            </button>
             <button
               onClick={() => setTheme((t) => t === "dark" ? "light" : "dark")}
               title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
