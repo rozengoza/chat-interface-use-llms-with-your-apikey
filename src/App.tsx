@@ -685,7 +685,7 @@ function ImportClaudeModal({ onImport, onClose }: {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       function extractText(v: any): string {
         if (typeof v === "string") return v;
-        if (Array.isArray(v)) return v.map((c) => (typeof c === "string" ? c : (c as {text?: string}).text ?? "")).join("\n");
+        if (Array.isArray(v)) return v.map((c) => (typeof c === "string" ? c : (c as { text?: string }).text ?? "")).join("\n");
         return "";
       }
 
@@ -701,8 +701,8 @@ function ImportClaudeModal({ onImport, onClose }: {
         }
         const role: "user" | "assistant" | null =
           m.sender === "human" || m.role === "user" ? "user"
-          : m.sender === "assistant" || m.role === "assistant" ? "assistant"
-          : null;
+            : m.sender === "assistant" || m.role === "assistant" ? "assistant"
+              : null;
         if (!role) return [];
         const text = extractText(m.text ?? m.content ?? "");
         if (!text.trim()) return [];
@@ -1463,6 +1463,40 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
     setShowImport(false);
   }, []);
 
+  const handleExportConversation = useCallback(() => {
+    if (!activeConv || activeConv.messages.length === 0) return;
+
+    const payload = {
+      title: activeConv.title,
+      exported_at: new Date().toISOString(),
+      // shape matches what ImportClaudeModal's JSON parser expects
+      chat_messages: activeConv.messages.map((m) => ({
+        role: m.role,
+        content: m.content,
+        timestamp: m.timestamp,
+        ...(m.tokens && { tokens: m.tokens }),
+      })),
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    // slug the title for a clean filename
+    const slug = activeConv.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .trim()
+      .replace(/\s+/g, "-")
+      .slice(0, 48);
+
+    a.href = url;
+    a.download = `${slug || "conversation"}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+  }, [activeConv]);
+
   const handleSaveKey = useCallback((key: string) => {
     setApiKey(key); saveApiKey(user.id, key);
   }, [user.id]);
@@ -1792,6 +1826,31 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
               </span>
             )}
           </div>
+
+          <button
+            onClick={handleExportConversation}
+            disabled={!hasMessages}
+            title="Export conversation as JSON"
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center",
+              width: 32, height: 32, borderRadius: 7,
+              border: "1px solid var(--border)",
+              color: "var(--text-muted)",
+              opacity: hasMessages ? 1 : 0.35,
+              transition: "background 0.15s, color 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              if (!hasMessages) return;
+              e.currentTarget.style.background = "var(--surface2)";
+              e.currentTarget.style.color = "var(--text)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "var(--text-muted)";
+            }}
+          >
+            <Download size={14} />
+          </button>
 
           <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
             <button

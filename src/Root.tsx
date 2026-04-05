@@ -4,6 +4,7 @@ import LoginPage from './LoginPage.tsx'
 import { getActiveSession } from './auth.ts'
 import type { UserProfile } from './auth.ts'
 
+
 export default function Root() {
   const [user, setUser] = useState<UserProfile | null>(() => {
     const s = getActiveSession();

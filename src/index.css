@@ -55,9 +55,9 @@
 /* ── Light theme ── */
 html[data-theme="light"] {
   color-scheme: light;
-  --bg:             #f2ede4;
-  --surface:        #e8e2d8;
-  --surface2:       #ddd6ca;
+  --bg:             #dfd8cd;
+  --surface:        #d5cec2;
+  --surface2:       #cbc3b6;
   --surface-glass:  rgba(232,226,216,0.85);
   --border:         #cec7bb;
   --border2:        #bdb5a8;
