@@ -80,14 +80,18 @@ This means:
 ### Getting Started
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey.git
+# 1. Fork the repository on GitHub
+# Visit: https://github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey
+# Click "Fork" in the top-right corner
+
+# 2. Clone your fork locally
+git clone https://github.com/YOUR_USERNAME/claude-chat-interface-make-chats-with-your-apikey.git
 cd arc
 
-# 2. Install dependencies
+# 3. Install dependencies
 npm install
 
-# 3. Run the development server
+# 4. Run the development server
 npm run dev
 ```
 
@@ -99,10 +103,12 @@ The easiest way to deploy your own instance:
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey.git)
 
-1. Fork this repository
-2. Import it into [Vercel](https://vercel.com/)
+1. **Fork this repository** on GitHub (top-right corner)
+2. Import your fork into [Vercel](https://vercel.com/)
 3. Set your `VITE_ALLOWED_USER_*` variables in the Vercel project settings
 4. Deploy — users will enter their own API keys when they open the app
+
+> **Why fork first?** It keeps your changes separate, makes deployments cleaner, and lets you easily stay in sync with upstream updates.
 
 ---
 
@@ -119,14 +125,13 @@ The easiest way to deploy your own instance:
 
 <img width="1687" height="912" alt="image" src="https://github.com/user-attachments/assets/18956cc2-96e0-4c80-b172-3b10f9a582ec" />
 
-
 ---
 
 ## Contributing
 
 Contributions are welcome! Feel free to open an issue or submit a pull request.
 
-1. Fork the repository
+1. **Fork the repository** on GitHub
 2. Create a feature branch (`git checkout -b feature/my-feature`)
 3. Commit your changes (`git commit -m 'Add my feature'`)
 4. Push to the branch (`git push origin feature/my-feature`)
