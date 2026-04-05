@@ -119,9 +119,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           }}>
             <img src={faviconUrl} alt="arc" style={{ width: 48, height: 48 }} />
           </div>
-          <h1 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 26, color: "var(--text)", marginBottom: 4 }}>
+          {/* <h1 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 26, color: "var(--text)", marginBottom: 4 }}>
             ARC
-          </h1>
+          </h1> */}
           <p style={{ fontSize: 13, color: "var(--text-muted)" }}>
             {mode === "login" ? "Sign in to your account" : "Create your account"}
           </p>
