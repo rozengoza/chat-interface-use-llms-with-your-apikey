@@ -636,7 +636,7 @@ function ImportClaudeModal({ onImport, onClose }: {
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ── JSON / file import ──────────────────────────────────────────────────
+  // JSON / file import
   function handleJsonImport() {
     setError("");
     if (!jsonText.trim()) { setError("Paste or upload exported JSON first."); return; }
@@ -821,6 +821,7 @@ function ImportClaudeModal({ onImport, onClose }: {
                 <li>Go to <a href="https://claude.ai/settings" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)" }}>claude.ai/settings</a></li>
                 <li>Click <strong style={{ color: "var(--text)" }}>Data export</strong> and request your data</li>
                 <li>Download the ZIP, open it and find the <code style={{ background: "var(--bg)", padding: "1px 5px", borderRadius: 4 }}>conversations.json</code> file</li>
+                <li>Or use a <code style={{ background: "var(--bg)", padding: "1px 5px", borderRadius: 4 }}>Chrome Extension</code> (for e.g. AI Chat Export & Navigator) to export in JSON format</li>
                 <li>Upload or paste that file below</li>
               </ol>
             </div>
@@ -1202,7 +1203,7 @@ function CodePreviewModal({ code, lang, filename, onClose }: { code: string; lan
   );
 }
 
-// ── Settings Modal ───────────────────────────────────────────────────────────
+// Settings Modal
 const TOKEN_OPTIONS = Array.from({ length: 10 }, (_, i) => (i + 1) * 1024);
 
 function SettingsModal({
