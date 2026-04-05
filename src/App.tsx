@@ -55,6 +55,7 @@ import {
 import { streamChat, MODELS, DEFAULT_MODEL } from "./api";
 import faviconUrl from "./assets/favicon.svg";
 import "./index.css";
+import gsap from "gsap";
 
 marked.setOptions({
   breaks: true,
@@ -557,6 +558,215 @@ function Thinking() {
   );
 }
 
+function ArcLogo() {
+  const lettersRef = useRef<HTMLSpanElement[]>([]);
+  const shadowRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const els = lettersRef.current.filter(Boolean) as HTMLSpanElement[];
+    if (!els.length) return;
+
+    // create or reuse a fixed shadow element positioned by JS so it follows visual transforms
+    let shadow = shadowRef.current;
+    if (!shadow) {
+      shadow = document.createElement('div');
+      shadow.className = 'arc-logo__shadow';
+      document.body.appendChild(shadow);
+      shadowRef.current = shadow;
+    }
+
+    // Pin transform origin at the bottom so squash/stretch feel grounded.
+    gsap.set(els, { transformOrigin: "bottom center" });
+
+    // All letters move as one unit — basketball dropping straight down.
+    // Explicit absolute time positions keep y and scale tweens fully
+    // separated so GSAP never has two tweens competing on the same prop.
+    //
+    // Timeline (seconds):
+    //   0.00 – 0.10  scale: impact-squash → launch-stretch  (power3.out)
+    //   0.00 – 0.42  y: 0 → -22  (power2.out — decelerates, like launch)
+    //   0.10 – 0.40  scale: launch-stretch → 1/1  (power1.inOut)
+    //   0.42 – 0.46  apex hang (implicit gap)
+    //   0.46 – 0.86  y: -22 → 0  (power2.in — accelerates, like gravity)
+    //   0.46 – 0.74  scale: 1/1 → slight elongation  (power1.in)
+    //   0.78 – 0.86  scale: elongated → impact-squash  (power4.out)
+    //   +0.22s       repeatDelay — ball rests squashed on the ground
+    const tl = gsap.timeline({ repeat: -1, repeatDelay: 0.22 });
+    let repeats = 0;
+
+    // LAUNCH: snap from ground-squash to vertical launch-stretch, y rises
+    tl.fromTo(
+        els,
+        { scaleY: 0.60, scaleX: 1.30 },
+        { scaleY: 1.20, scaleX: 0.85, duration: 0.10, ease: "power3.out" },
+        0
+      )
+      .to(els, { y: -22, duration: 0.42, ease: "power2.out" }, 0)
+
+      // RISE: scale settles back to neutral as letters reach apex
+      .to(els, { scaleY: 1, scaleX: 1, duration: 0.30, ease: "power1.inOut" }, 0.10)
+
+      // FALL: gravity pulls them down, slight vertical elongation
+      .to(els, { y: 6, duration: 0.40, ease: "power2.in" }, 0.46)
+      .to(els, { scaleY: 1.08, scaleX: 0.94, duration: 0.28, ease: "power1.in" }, 0.46)
+
+      // IMPACT: sharp squash the instant they hit the ground
+      .to(els, { scaleY: 0.60, scaleX: 1.30, duration: 0.08, ease: "power4.out" }, 0.78);
+
+    if (shadow) {
+      // compute page coordinates from the logo container so the shadow matches ARC width
+      const containerRect = els[0].parentElement?.getBoundingClientRect() ?? els[0].getBoundingClientRect();
+      const centerX = Math.round(containerRect.left + containerRect.width / 2);
+      const impactY = Math.round(containerRect.bottom + 8); // letters lowest (6) + 2px offset
+      shadow.style.position = 'fixed';
+      shadow.style.left = `${centerX}px`;
+      shadow.style.top = `${impactY}px`;
+      shadow.style.width = `${Math.round(containerRect.width)}px`;
+      shadow.style.transform = 'translateX(-50%) translateY(0)';
+
+      gsap.set(shadow, { x: 0, y: 0, scaleX: 0.6, opacity: 0.06, transformOrigin: 'center center' });
+
+      // rising: move shadow up (negative y); impact: y = 0
+      tl.to(shadow, { scaleX: 0.45, opacity: 0.04, y: -8, duration: 0.42, ease: 'power1.out' }, 0);
+      tl.to(shadow, { scaleX: 0.9, opacity: 0.14, y: 0, duration: 0.40, ease: 'power1.in' }, 0.46);
+      tl.to(shadow, { scaleX: 1.25, opacity: 0.28, y: 0, duration: 0.08, ease: 'power4.out' }, 0.78);
+      tl.to(shadow, { scaleX: 0.6, opacity: 0.08, y: -2, duration: 0.22, ease: 'power2.out' }, 0.86);
+    }
+
+    // After a couple of jumps, trigger an artistic favicon generation sequence.
+    tl.eventCallback("onRepeat", () => {
+      repeats += 1;
+      if (repeats === 2) {
+        triggerFaviconSequence(els);
+      }
+    });
+
+    return () => {
+      tl.kill();
+      if (shadowRef.current) {
+        shadowRef.current.remove();
+        shadowRef.current = null;
+      }
+    };
+  }, []);
+
+  return (
+    <div className="arc-logo">
+      {["A", "R", "C"].map((letter, i) => (
+        <span
+          key={letter}
+          ref={(el) => { lettersRef.current[i] = el as HTMLSpanElement; }}
+          className={`arc-logo__letter arc-logo__letter--${letter}`}
+          aria-hidden={false}
+          title={letter}
+        >
+          {letter}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// Create a small burst animation near the logo then generate and set a favicon.
+function triggerFaviconSequence(els: HTMLSpanElement[]) {
+  try {
+    const rect = els[0]?.getBoundingClientRect();
+    const container = document.createElement("div");
+    container.className = "arc-fav-sparkles";
+    document.body.appendChild(container);
+
+    const colors = ["#7FFFD4", "#B5CC18", "#7FFFD4"];
+    const dots: HTMLSpanElement[] = [];
+    for (let i = 0; i < 9; i++) {
+      const d = document.createElement("span");
+      d.className = "arc-fav-dot";
+      d.style.background = colors[i % colors.length];
+      container.appendChild(d);
+      dots.push(d);
+    }
+
+    // Position container over the first letter (approx)
+    if (rect) {
+      container.style.left = Math.round(rect.left + rect.width / 2) + "px";
+      container.style.top = Math.round(rect.top + rect.height / 2) + "px";
+    }
+
+    // Animate letters with a brief scale/pop while dots burst outward
+    gsap.to(els, { scaleX: 1.06, scaleY: 0.94, duration: 0.08, yoyo: true, repeat: 3, ease: "sine.inOut" });
+
+    const shadow = document.querySelector('.arc-logo__shadow') as HTMLDivElement | null;
+    if (shadow) {
+      gsap.set(shadow, { scaleX: 0.6, opacity: 0.08, transformOrigin: 'center center' });
+    }
+
+    dots.forEach((dot, i) => {
+      const angle = (i / dots.length) * Math.PI * 2 + gsap.utils.random(-0.4, 0.4);
+      const dist = 26 + i * 4 + gsap.utils.random(-6, 6);
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * dist;
+      gsap.fromTo(dot, { x: 0, y: 0, opacity: 0 }, { x: dx, y: dy, opacity: 1, duration: 0.6, ease: "power2.out" });
+      gsap.to(dot, { scale: 0.3, opacity: 0, duration: 0.6, delay: 0.35, ease: "power1.in", onComplete: () => { dot.remove(); } });
+    });
+
+    // Fade container out and remove
+    gsap.to(container, { opacity: 0, delay: 1.0, duration: 0.3, onComplete: () => { container.remove(); createFavicon(); } });
+  } catch {
+    // fall through silently
+    createFavicon();
+  }
+}
+
+function createFavicon() {
+  // Minimal artistic SVG that echoes src/assets/favicon.svg gradients
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='64' height='64'>
+    <defs>
+      <linearGradient id='gA' x1='0%' y1='0%' x2='100%' y2='100%'>
+        <stop offset='0%' stop-color='#7FFFD4'/>
+        <stop offset='40%' stop-color='#48D1CC'/>
+        <stop offset='100%' stop-color='#20B2AA'/>
+      </linearGradient>
+      <linearGradient id='gR' x1='0%' y1='0%' x2='100%' y2='100%'>
+        <stop offset='0%' stop-color='#E8F5A3'/>
+        <stop offset='40%' stop-color='#B5CC18'/>
+        <stop offset='100%' stop-color='#8DB600'/>
+      </linearGradient>
+      <linearGradient id='gC' x1='0%' y1='0%' x2='100%' y2='100%'>
+        <stop offset='0%' stop-color='#7FFFD4'/>
+        <stop offset='100%' stop-color='#B5CC18'/>
+      </linearGradient>
+    </defs>
+    <rect width='64' height='64' rx='12' fill='#0D1F1E'/>
+    <text x='8' y='44' font-family='Instrument Serif, serif' font-size='36' font-weight='600' fill='url(#gA)'>A</text>
+    <text x='24' y='44' font-family='Instrument Serif, serif' font-size='36' font-weight='600' fill='url(#gR)'>R</text>
+    <text x='42' y='44' font-family='Instrument Serif, serif' font-size='36' font-weight='600' fill='url(#gC)'>C</text>
+  </svg>`;
+
+  // Convert to base64 data URL
+  try {
+    const b64 = btoa(unescape(encodeURIComponent(svg)));
+    const url = `data:image/svg+xml;base64,${b64}`;
+    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.href = url;
+  } catch {
+    // fallback: create blob URL
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.href = url;
+  }
+}
+
 function ApiKeyModal({ current, onSave, onClose }: { current: string; onSave: (k: string) => void; onClose: () => void }) {
   const [val, setVal] = useState(current);
   const [show, setShow] = useState(false);
@@ -962,17 +1172,7 @@ function Sidebar({ sessions, activeId, collapsed, onToggle, onSelect, onNew, onD
         height: 54,
       }}>
         {!collapsed && (
-          <span style={{
-            fontFamily: "'Instrument Serif', serif",
-            fontSize: 17,
-            color: "var(--text)",
-            letterSpacing: "-0.2px",
-            paddingLeft: 4,
-            display: "flex", alignItems: "center", gap: 7,
-          }}>
-            <img src={faviconUrl} alt="arc" style={{ width: 20, height: 20 }} />
-            ARC
-          </span>
+          <ArcLogo />
         )}
         <button
           onClick={onToggle}
