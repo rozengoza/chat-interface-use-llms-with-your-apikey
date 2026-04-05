@@ -81,7 +81,7 @@ This means:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/rozengoza/arc.git
+git clone https://github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey.git
 cd arc
 
 # 2. Install dependencies
@@ -90,18 +90,6 @@ npm install
 # 3. Run the development server
 npm run dev
 ```
-
-### Environment Variables
-
-Create a `.env` file in the root of the project to configure allowed usernames:
-
-```env
-VITE_ALLOWED_USER_1=guest
-# VITE_ALLOWED_USER_2=yourname
-# Add more as needed
-```
-
-> The API key is **not** an environment variable — it is entered by each user at runtime and never stored.
 
 ---
 
