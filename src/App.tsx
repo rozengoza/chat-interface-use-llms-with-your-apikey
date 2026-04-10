@@ -1404,7 +1404,7 @@ function CodePreviewModal({ code, lang, filename, onClose }: { code: string; lan
 }
 
 // Settings Modal
-const TOKEN_OPTIONS = Array.from({ length: 30 }, (_, i) => (i + 1) * 1024);
+const TOKEN_OPTIONS = Array.from({ length: 50 }, (_, i) => (i + 1) * 1024);
 
 function SettingsModal({
   current,
