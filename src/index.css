@@ -55,42 +55,43 @@
 /* ── Light theme ── */
 html[data-theme="light"] {
   color-scheme: light;
-  --bg:             #dfd8cd;
-  --surface:        #d5cec2;
-  --surface2:       #cbc3b6;
-  --surface-glass:  rgba(232,226,216,0.85);
-  --border:         #cec7bb;
-  --border2:        #bdb5a8;
-  --border-accent:  rgba(180,90,60,0.25);
+  /* Warmer, more vibrant light palette */
+  --bg:             #fffaf6;
+  --surface:        #fff7f2;
+  --surface2:       #fff1e8;
+  --surface-glass:  rgba(255,250,245,0.9);
+  --border:         #fde6da;
+  --border2:        #f7d9c8;
+  --border-accent:  rgba(255,107,53,0.18);
 
-  --text:           #1c1a17;
-  --text-muted:     #6b6660;
-  --text-dim:       #a09b94;
+  --text:           #1a1a18;
+  --text-muted:     #6b5e57;
+  --text-dim:       #8f8278;
 
-  --accent:         #b85c3c;
-  --accent-warm:    #c96842;
-  --accent-dim:     rgba(184,92,60,0.12);
-  --accent-glow:    rgba(184,92,60,0.06);
+  --accent:         #ff6b35; /* vibrant orange */
+  --accent-warm:    #ff8a4b;
+  --accent-dim:     rgba(255,107,53,0.14);
+  --accent-glow:    rgba(255,107,53,0.10);
 
   --green:          #3a7d52;
   --orange:         #a67c2a;
   --red:            #c0392b;
 
-  --shadow-sm:      0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-  --shadow:         0 4px 16px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08);
-  --shadow-lg:      0 12px 40px rgba(0,0,0,0.16), 0 4px 12px rgba(0,0,0,0.1);
-  --shadow-accent:  0 4px 20px rgba(184,92,60,0.14);
+  --shadow-sm:      0 4px 10px rgba(17,17,17,0.06), 0 1px 2px rgba(17,17,17,0.04);
+  --shadow:         0 8px 30px rgba(17,17,17,0.08), 0 2px 6px rgba(17,17,17,0.06);
+  --shadow-lg:      0 20px 60px rgba(17,17,17,0.10), 0 6px 20px rgba(17,17,17,0.06);
+  --shadow-accent:  0 6px 30px rgba(255,107,53,0.08);
 
   --modal-overlay:  rgba(0,0,0,0.4);
 
-  --code-bg:        #1a1917;
-  --code-header-bg: rgba(255,255,255,0.05);
-  --badge-bg:       rgba(0,0,0,0.05);
-  --inline-code-bg: rgba(184,92,60,0.09);
-  --inline-code-fg: #9c3d20;
-  --inline-code-bd: rgba(184,92,60,0.22);
+  --code-bg:        #11100f;
+  --code-header-bg: rgba(255,255,255,0.06);
+  --badge-bg:       rgba(255,255,255,0.06);
+  --inline-code-bg: rgba(255,139,75,0.12);
+  --inline-code-fg: #7a2b10;
+  --inline-code-bd: rgba(255,139,75,0.22);
 
-  --grain-opacity:  0.022;
+  --grain-opacity:  0.02;
 }
 
 /* ── Base ── */
