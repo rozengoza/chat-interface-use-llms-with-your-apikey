@@ -319,7 +319,7 @@ export const MODELS: ModelOption[] = [
 ];
 
 // Default to free tier Gemini model
-export const DEFAULT_MODEL = "gemini-2.0-flash-exp";
+export const DEFAULT_MODEL = "gemini-2.0-flash";
 export const DEFAULT_PROVIDER = "gemini-free";
 
 export interface StreamCallbacks {

@@ -35,7 +35,11 @@ const PROFILE_KEY  = "arc_profiles"; // local store for color/emoji preferences
 // e.g. VITE_API_URL=http://localhost:3001   (dev)
 //      VITE_API_URL=https://arc-backend.onrender.com   (prod)
 // ---------------------------------------------------------------------------
-export const API_BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ?? "http://localhost:5001";
+// Normalize VITE_API_URL: ensure no trailing slash and a scheme (defaults to https:// when missing).
+const _rawApiUrl = (import.meta.env.VITE_API_URL as string | undefined) ?? "";
+const _trimmed = _rawApiUrl.replace(/\/$/, "");
+const _withScheme = _trimmed && !/^https?:\/\//i.test(_trimmed) ? `https://${_trimmed}` : _trimmed;
+export const API_BASE = _withScheme || "http://localhost:5001";
 
 // ---------------------------------------------------------------------------
 // Local profile store (color + emoji only — not sensitive)
