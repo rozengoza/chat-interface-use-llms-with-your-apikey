@@ -27,6 +27,7 @@ import {
   LogOut,
   Copy,
   Link2,
+  Info,
   Moon,
   Sun,
   Download,
@@ -977,9 +978,10 @@ interface SidebarProps {
   onDelete: (id: string) => void;
   onImport: () => void;
   onRename: (id: string, newTitle: string) => void;
+  onInfo?: () => void;
 }
 
-function Sidebar({ sessions, activeId, collapsed, onToggle, onSelect, onNew, onDelete, onImport, onRename }: SidebarProps) {
+function Sidebar({ sessions, activeId, collapsed, onToggle, onSelect, onNew, onDelete, onImport, onRename, onInfo }: SidebarProps) {
   const sorted = [...sessions].sort((a, b) => b.updatedAt - a.updatedAt);
   const groups: { label: string; items: Conversation[] }[] = [];
   for (const s of sorted) {
@@ -1123,6 +1125,12 @@ function Sidebar({ sessions, activeId, collapsed, onToggle, onSelect, onNew, onD
           ))
         }
       </div>
+      <div style={{ padding: collapsed ? "8px 6px" : "10px 12px", borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8, justifyContent: collapsed ? "center" : "space-between" }}>
+        <button onClick={() => onInfo?.()} title="App info" style={{ display: "flex", alignItems: "center", gap: 8, padding: collapsed ? "6px 6px" : "6px 10px", background: "transparent", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text-dim)", fontSize: 12.5 }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface2)") } onMouseLeave={(e) => (e.currentTarget.style.background = "transparent") }>
+          <Info size={14} />{!collapsed && "About"}
+        </button>
+        {!collapsed && <span style={{ fontSize: 11, color: "var(--text-dim)", fontFamily: "'JetBrains Mono', monospace" }}>v{import.meta.env.VITE_APP_VERSION ?? "dev"}</span>}
+      </div>
     </aside>
   );
 }
@@ -1226,6 +1234,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
   const [tokenSettings, setTokenSettings] = useState<TokenSettings>(() => loadTokenSettings(user.id));
   const [previewCode, setPreviewCode] = useState<{ code: string; lang: string; filename: string } | null>(null);
 
@@ -1768,6 +1777,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
         onDelete={handleDeleteSession}
         onImport={() => setShowImport(true)}
         onRename={handleRenameSession}
+        onInfo={() => setShowInfo(true)}
       />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
         <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px", height: 54, borderBottom: "1px solid var(--border)", background: "var(--surface)", flexShrink: 0 }}>
@@ -1950,6 +1960,48 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
       {showSettings && <SettingsModal current={tokenSettings} onSave={(s) => { setTokenSettings(s); saveTokenSettings(user.id, s); setShowSettings(false); }} onClose={() => setShowSettings(false)} />}
       {showImport && <ImportClaudeModal onImport={(msgs) => void handleImportConversation(msgs)} onClose={() => setShowImport(false)} />}
       {previewCode && <CodePreviewModal code={previewCode.code} lang={previewCode.lang} filename={previewCode.filename} onClose={() => setPreviewCode(null)} />}
+      {showInfo && <InfoModal onClose={() => setShowInfo(false)} />}
+    </div>
+  );
+}
+
+// ── InfoModal ──────────────────────────────────────────────────────────────
+function InfoModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "var(--modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 80, padding: 20, backdropFilter: "blur(6px)" }} onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div style={{ background: "var(--surface)", border: "1px solid var(--border2)", borderRadius: 12, padding: 24, width: "100%", maxWidth: 720, boxShadow: "var(--shadow)", color: "var(--text)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <div>
+            <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 22, margin: 0 }}>About ARC</h2>
+            <p style={{ margin: 0, marginTop: 6, color: "var(--text-muted)" }}>A lightweight client for multiple model providers.</p>
+          </div>
+          <button onClick={onClose} style={{ color: "var(--text-muted)", display: "flex" }}><X size={18} /></button>
+        </div>
+
+        <section style={{ marginBottom: 12 }}>
+          <h3 style={{ margin: "6px 0", fontSize: 14 }}>Free models</h3>
+          <p style={{ margin: 0, color: "var(--text-muted)" }}>Some models are available without an API key (marked ✦). Use them freely — they're provided by the app's free-tier integration.</p>
+        </section>
+
+        <section style={{ marginBottom: 12 }}>
+          <h3 style={{ margin: "6px 0", fontSize: 14 }}>Paid models / Bring your API key</h3>
+          <p style={{ margin: 0, color: "var(--text-muted)" }}>To use premium models, supply your provider API key via the key button. Keys are stored locally in your browser's Local Storage and never sent to our servers.</p>
+        </section>
+
+        <section style={{ marginBottom: 12 }}>
+          <h3 style={{ margin: "6px 0", fontSize: 14 }}>Encrypted chats</h3>
+          <p style={{ margin: 0, color: "var(--text-muted)" }}>You can enable chat encryption by setting a password. The app stores only encrypted payloads and uses password-derived hashes locally to unlock them. Keep your password safe; we cannot recover it for you.</p>
+        </section>
+
+        <section style={{ marginBottom: 12 }}>
+          <h3 style={{ margin: "6px 0", fontSize: 14 }}>Importing conversations</h3>
+          <p style={{ margin: 0, color: "var(--text-muted)" }}>Import JSON exports from Claude or other providers via the Import button in the sidebar. The app will persist imported messages to your account (server must support message persistence).</p>
+        </section>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
+          <button onClick={onClose} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid var(--border2)", color: "var(--text-muted)" }}>Close</button>
+        </div>
+      </div>
     </div>
   );
 }
