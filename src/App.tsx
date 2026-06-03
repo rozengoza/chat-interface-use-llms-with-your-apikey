@@ -703,6 +703,21 @@ function ApiKeyModal({ current, onSave, onClose }: { current: string; onSave: (k
   const [val, setVal] = useState(current);
   const [show, setShow] = useState(false);
 
+  // Detect probable provider from entered key (local to modal)
+  const detectFromKey = (k: string): string | null => {
+    if (!k) return null;
+    const t = k.trim();
+    if (t.startsWith("sk-ant-")) return "Anthropic";
+    if (t.startsWith("AQ")) return "Gemini (Google)";
+    if (t.startsWith("AIza")) return "Gemini (Google)";
+    if (t.startsWith("xai-")) return "Grok (xAI)";
+    if (t.startsWith("sk-or-")) return "OpenRouter";
+    if (t.startsWith("sk-") && !t.startsWith("sk-ant-")) return "OpenAI";
+    return null;
+  };
+
+  const probable = detectFromKey(val);
+
   return (
     <div
       style={{ position: "fixed", inset: 0, background: "var(--modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 20, backdropFilter: "blur(4px)" }}
@@ -745,9 +760,28 @@ function ApiKeyModal({ current, onSave, onClose }: { current: string; onSave: (k
           >
             {show ? "hide" : "show"}
           </button>
+          {/* provider tag moved to action row */}
         </div>
 
-        <div style={{ display: "flex", gap: 10, marginTop: 18, justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", gap: 10, marginTop: 18, justifyContent: "flex-end", alignItems: "center" }}>
+          {probable && (
+            <span
+              title={`This key looks like a ${probable} key — you will be able to access models from ${probable}.`}
+              style={{
+                fontSize: 12,
+                padding: "6px 10px",
+                borderRadius: 8,
+                background: "var(--surface2)",
+                border: "1px solid var(--border)",
+                color: "var(--text-muted)",
+                fontFamily: "'JetBrains Mono', monospace",
+                cursor: "default",
+                marginRight: 4,
+              }}
+            >
+              🔑 {probable}
+            </span>
+          )}
           <button onClick={onClose} style={{ padding: "8px 18px", border: "1px solid var(--border2)", borderRadius: 7, color: "var(--text-muted)", fontSize: 13 }}>Cancel</button>
           <button
             onClick={() => { onSave(val.trim()); onClose(); }}
@@ -1219,42 +1253,12 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
 
   const activeConv = sessions.find((s) => s.id === activeId) ?? null;
 
-  // Detect which provider an API key belongs to based on its format
-  const detectProviderFromApiKey = useCallback((key: string): string | null => {
-    if (!key || !key.trim()) return null;
-    const trimmed = key.trim();
-    
-    // Anthropic keys start with "sk-ant-"
-    if (trimmed.startsWith("sk-ant-")) return "anthropic";
-    
-    // Google/Gemini keys start with "AIza" or "AQ"
-    if (trimmed.startsWith("AIza") || trimmed.startsWith("AQ")) return "gemini";
-    
-    // Grok/xAI keys start with "xai-"
-    if (trimmed.startsWith("xai-")) return "grok";
-    
-    // OpenAI keys start with "sk-" (but not sk-ant-)
-    if (trimmed.startsWith("sk-") && !trimmed.startsWith("sk-ant-")) return "openai";
-    
-    // OpenRouter keys start with "sk-or-"
-    if (trimmed.startsWith("sk-or-")) return "openrouter";
-    
-    return null;
-  }, []);
+  // API-key-based provider detection is disabled per user request.
+  // Do not attempt to classify providers from the API key.
 
   // Filter providers based on API key - if key is set, only show that provider's models
   // If no key is set, show all fetched providers/models (we still default-select a free model)
-  const filteredProviders = useMemo(() => {
-    const keyProvider = detectProviderFromApiKey(apiKey);
-
-    if (keyProvider) {
-      // User has an API key - only show models from that provider
-      return providers.filter((p) => p.slug === keyProvider || p.slug.startsWith(keyProvider));
-    } else {
-      // No API key - show all fetched models
-      return providers;
-    }
-  }, [providers, apiKey, detectProviderFromApiKey]);
+  const filteredProviders = useMemo(() => providers, [providers]);
 
   // Helper to check if current provider/model is free tier
   const isCurrentModelFree = useCallback((): boolean => {
@@ -1298,29 +1302,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
     }).catch(() => {});
   }, []);
 
-  // Auto-switch to compatible model when API key changes
-  useEffect(() => {
-    const keyProvider = detectProviderFromApiKey(apiKey);
-    
-    if (keyProvider) {
-      // User set an API key - switch to first model from that provider
-      const compatibleProvider = providers.find((p) => p.slug === keyProvider || p.slug.startsWith(keyProvider));
-      if (compatibleProvider && compatibleProvider.models.length > 0) {
-        setProvider(compatibleProvider.slug);
-        setModel(compatibleProvider.models[0].model_id);
-      }
-    } else if (apiKey === "") {
-      // User cleared API key - switch to first free model
-      for (const p of providers) {
-        const freeModel = p.models.find((m) => m.is_free);
-        if (freeModel) {
-          setProvider(p.slug);
-          setModel(freeModel.model_id);
-          break;
-        }
-      }
-    }
-  }, [apiKey, providers, detectProviderFromApiKey]);
+  // Auto-switching based on API key was removed; users choose provider/model manually.
 
   // Apply user accent color
   useEffect(() => {
@@ -1783,11 +1765,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
             </select>
             
             {/* Indicator when models are filtered by API key */}
-            {apiKey && detectProviderFromApiKey(apiKey) && (
-              <span title={`Showing only ${detectProviderFromApiKey(apiKey)} models (API key set)`} style={{ fontSize: 10, fontFamily: "'JetBrains Mono', monospace", color: "var(--accent)", background: "var(--accent-dim)", border: "1px solid var(--accent)", padding: "1px 6px", borderRadius: 4, flexShrink: 0 }}>
-                🔑 {detectProviderFromApiKey(apiKey)}
-              </span>
-            )}
+            {/* API-key provider hint disabled — users pick provider and model manually */}
             
             {/* when no api key is set we show all fetched models; no special badge */}
             
