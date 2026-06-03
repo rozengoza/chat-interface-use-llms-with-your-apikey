@@ -1,169 +1,196 @@
 /**
- * auth.ts — Client-side auth using Web Crypto PBKDF2 + SHA-256.
+ * auth.ts — Client-side auth using the ARC backend.
  *
- * User records are persisted in localStorage. Passwords are NEVER stored
- * in plaintext — only the PBKDF2-derived key (hex) + salt per user.
+ * WHAT CHANGED FROM THE OLD VERSION:
+ *   - No more PBKDF2 / localStorage password hashing
+ *   - register/login hit POST /auth/register and POST /auth/login
+ *   - JWT is stored in sessionStorage (cleared on tab close, same as before)
+ *   - UserProfile shape is mostly the same so LoginPage.tsx needs no changes
  *
- * Session: a random token stored in sessionStorage (cleared on tab close).
+ * WHAT STAYS THE SAME:
+ *   - Session cleared on tab close (sessionStorage)
+ *   - logout() clears sessionStorage
+ *   - getActiveSession() returns { session, user } or null
  */
 
 export interface UserProfile {
-  id: string;         // uuid, immutable
-  username: string;   // display name
-  color: string;      // accent color hex
-  emoji: string;      // avatar emoji
-  passwordHash: string; // hex-encoded PBKDF2 output
-  passwordSalt: string; // hex-encoded random salt
+  id: string;
+  username: string;
+  color: string;    // chosen at register, stored locally (not in DB yet)
+  emoji: string;    // chosen at register, stored locally (not in DB yet)
   createdAt: number;
 }
 
 export interface Session {
   userId: string;
-  token: string;
+  token: string;    // JWT from backend
   loginAt: number;
 }
 
-const USERS_KEY   = "arc_users";
-const SESSION_KEY = "arc_session";
-const ITERATIONS  = 200_000;
+const SESSION_KEY  = "arc_session";
+const PROFILE_KEY  = "arc_profiles"; // local store for color/emoji preferences
 
-// Allowlist
-// Usernames are loaded from .env.local at build time (gitignored).
-// Set VITE_ALLOWED_USER_1 and VITE_ALLOWED_USER_2 in .env.local.
-// export const ALLOWED_USERNAMES: [string, string, string, string] = [
-//   import.meta.env.VITE_ALLOWED_USER_1,
-//   import.meta.env.VITE_ALLOWED_USER_2,
-//   import.meta.env.VITE_ALLOWED_USER_3,
-//   import.meta.env.VITE_ALLOWED_USER_4,
-// ];
+// ---------------------------------------------------------------------------
+// API base URL — set VITE_API_URL in your .env.local
+// e.g. VITE_API_URL=http://localhost:3001   (dev)
+//      VITE_API_URL=https://arc-backend.onrender.com   (prod)
+// ---------------------------------------------------------------------------
+export const API_BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ?? "http://localhost:5001";
 
-// Crypto helpers
-
-function bytesToHex(buf: ArrayBuffer): string {
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-function hexToBytes(hex: string): Uint8Array {
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < hex.length; i += 2) {
-    bytes[i / 2] = parseInt(hex.slice(i, i + 2), 16);
-  }
-  return bytes;
-}
-
-async function deriveKey(password: string, saltHex: string): Promise<string> {
-  const enc = new TextEncoder();
-  const keyMaterial = await crypto.subtle.importKey(
-    "raw",
-    enc.encode(password),
-    "PBKDF2",
-    false,
-    ["deriveBits"]
-  );
-  const saltBytes = hexToBytes(saltHex);
-  const derived = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      hash: "SHA-256",
-      salt: saltBytes.buffer as ArrayBuffer,
-      iterations: ITERATIONS,
-    },
-    keyMaterial,
-    256
-  );
-  return bytesToHex(derived);
-}
-
-function randomHex(bytes = 16): string {
-  return bytesToHex(crypto.getRandomValues(new Uint8Array(bytes)).buffer);
-}
-
-// User storage
-
-export function loadUsers(): UserProfile[] {
+// ---------------------------------------------------------------------------
+// Local profile store (color + emoji only — not sensitive)
+// ---------------------------------------------------------------------------
+function loadProfiles(): Record<string, { color: string; emoji: string }> {
   try {
-    const raw = localStorage.getItem(USERS_KEY);
-    if (raw) return JSON.parse(raw) as UserProfile[];
-  } catch {
-    console.warn("Failed to load users");
-  }
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (raw) return JSON.parse(raw) as Record<string, { color: string; emoji: string }>;
+  } catch { /* ignore */ }
+  return {};
+}
+
+function saveProfile(username: string, color: string, emoji: string) {
+  const profiles = loadProfiles();
+  profiles[username.toLowerCase()] = { color, emoji };
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(profiles));
+}
+
+function getProfile(username: string): { color: string; emoji: string } {
+  const profiles = loadProfiles();
+  return profiles[username.toLowerCase()] ?? { color: "#58a6ff", emoji: "🐱" };
+}
+
+// ---------------------------------------------------------------------------
+// Return saved usernames for the "quick login" avatar strip in LoginPage
+// ---------------------------------------------------------------------------
+export function loadUsers(): Array<{ id: string; username: string; color: string; emoji: string }> {
+  // We store the minimal info needed to render the avatar strip locally.
+  // The source of truth for the account itself is the backend DB.
+  try {
+    const raw = localStorage.getItem("arc_known_users");
+    if (raw) return JSON.parse(raw) as Array<{ id: string; username: string; color: string; emoji: string }>;
+  } catch { /* ignore */ }
   return [];
 }
 
-function saveUsers(users: UserProfile[]): void {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+function rememberUser(user: UserProfile) {
+  const known = loadUsers();
+  const exists = known.find((u) => u.id === user.id);
+  if (!exists) {
+    known.push({ id: user.id, username: user.username, color: user.color, emoji: user.emoji });
+    localStorage.setItem("arc_known_users", JSON.stringify(known));
+  }
 }
 
+// ---------------------------------------------------------------------------
 // Register
-
+// ---------------------------------------------------------------------------
 export async function registerUser(
   username: string,
   password: string,
   color: string,
-  emoji: string
+  emoji: string,
 ): Promise<UserProfile> {
-  // const allowed = ALLOWED_USERNAMES.map((n) => n.toLowerCase());
-  // if (!allowed.includes(username.trim().toLowerCase())) {
-  //   throw new Error("This username is not authorised to access arc.");
-  // }
-  const users = loadUsers();
-  if (users.find((u) => u.username.toLowerCase() === username.trim().toLowerCase())) {
-    throw new Error("Username already taken.");
+  const res = await fetch(`${API_BASE}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
+
+  const data = await res.json() as { token?: string; user?: { id: string; username: string }; error?: string };
+
+  if (!res.ok || !data.token || !data.user) {
+    throw new Error(data.error ?? "Registration failed");
   }
-  const salt = randomHex(16);
-  const hash = await deriveKey(password, salt);
+
+  saveProfile(username, color, emoji);
+
   const profile: UserProfile = {
-    id: crypto.randomUUID(),
-    username: username.trim(),
+    id: data.user.id,
+    username: data.user.username,
     color,
     emoji,
-    passwordHash: hash,
-    passwordSalt: salt,
     createdAt: Date.now(),
   };
-  saveUsers([...users, profile]);
+
+  const session: Session = { userId: profile.id, token: data.token, loginAt: Date.now() };
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  rememberUser(profile);
+
   return profile;
 }
 
+// ---------------------------------------------------------------------------
 // Login
+// ---------------------------------------------------------------------------
+export async function loginUser(username: string, password: string): Promise<UserProfile> {
+  const res = await fetch(`${API_BASE}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
 
-export async function loginUser(
-  username: string,
-  password: string
-): Promise<UserProfile> {
-  // const allowed = ALLOWED_USERNAMES.map((n) => n.toLowerCase());
-  // if (!allowed.includes(username.trim().toLowerCase())) {
-  //   throw new Error("This username is not authorised to access arc.");
-  // }
-  const users = loadUsers();
-  const user = users.find((u) => u.username.toLowerCase() === username.trim().toLowerCase());
-  if (!user) throw new Error("Account not found. Register first.");
+  const data = await res.json() as { token?: string; user?: { id: string; username: string }; error?: string };
 
-  const hash = await deriveKey(password, user.passwordSalt);
-  if (hash !== user.passwordHash) throw new Error("Incorrect password.");
+  if (!res.ok || !data.token || !data.user) {
+    throw new Error(data.error ?? "Login failed");
+  }
 
-  const session: Session = {
-    userId: user.id,
-    token: randomHex(32),
-    loginAt: Date.now(),
+  const { color, emoji } = getProfile(data.user.username);
+
+  const profile: UserProfile = {
+    id: data.user.id,
+    username: data.user.username,
+    color,
+    emoji,
+    createdAt: Date.now(),
   };
+
+  const session: Session = { userId: profile.id, token: data.token, loginAt: Date.now() };
   sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-  return user;
+  rememberUser(profile);
+
+  return profile;
 }
 
-// Session
-
+// ---------------------------------------------------------------------------
+// Session helpers
+// ---------------------------------------------------------------------------
 export function getActiveSession(): { session: Session; user: UserProfile } | null {
   try {
     const raw = sessionStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const session = JSON.parse(raw) as Session;
-    const users = loadUsers();
-    const user = users.find((u) => u.id === session.userId);
-    if (!user) return null;
+
+    // Reconstruct UserProfile from the JWT payload (no DB call needed)
+    const payloadB64 = session.token.split(".")[1];
+    const payload = JSON.parse(atob(payloadB64)) as { sub: string; username: string; exp: number };
+
+    // Check expiry
+    if (payload.exp && Date.now() / 1000 > payload.exp) {
+      sessionStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+
+    const { color, emoji } = getProfile(payload.username);
+    const user: UserProfile = {
+      id: payload.sub,
+      username: payload.username,
+      color,
+      emoji,
+      createdAt: 0,
+    };
     return { session, user };
+  } catch {
+    return null;
+  }
+}
+
+export function getToken(): string | null {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const session = JSON.parse(raw) as Session;
+    return session.token;
   } catch {
     return null;
   }
@@ -173,17 +200,16 @@ export function logout(): void {
   sessionStorage.removeItem(SESSION_KEY);
 }
 
-// Reset/change password for an existing username.
-// Requires the current password to verify identity, then writes a new salt+hash.
-export async function resetPassword(username: string, currentPassword: string, newPassword: string): Promise<void> {
-  const users = loadUsers();
-  const idx = users.findIndex((u) => u.username.toLowerCase() === username.trim().toLowerCase());
-  if (idx === -1) throw new Error("Account not found.");
-  const user = users[idx];
-  const currentHash = await deriveKey(currentPassword, user.passwordSalt);
-  if (currentHash !== user.passwordHash) throw new Error("Current password is incorrect.");
-  const newSalt = randomHex(16);
-  const newHash = await deriveKey(newPassword, newSalt);
-  users[idx] = { ...user, passwordSalt: newSalt, passwordHash: newHash };
-  saveUsers(users);
+// ---------------------------------------------------------------------------
+// Password reset — calls backend (not needed to change on backend, uses login)
+// Kept for LoginPage.tsx compatibility
+// ---------------------------------------------------------------------------
+export async function resetPassword(
+  _username: string,
+  _currentPassword: string,
+  _newPassword: string,
+): Promise<void> {
+  // Placeholder — add a PATCH /auth/password endpoint on the backend when needed.
+  // For now: tell the user to contact admin or re-register.
+  throw new Error("Password reset is not yet supported in the backend version. Please contact the administrator.");
 }

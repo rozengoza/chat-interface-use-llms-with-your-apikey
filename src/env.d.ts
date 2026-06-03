@@ -1,10 +1,9 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_ALLOWED_USER_1: string;
-  readonly VITE_ALLOWED_USER_2: string;
-  readonly VITE_ALLOWED_USER_3: string;
-  readonly VITE_ALLOWED_USER_4: string;
+  // Backend API URLs used by the frontend
+  readonly VITE_API_URL?: string;
+  readonly VITE_API_BASE_URL?: string;
 }
 
 interface ImportMeta {

@@ -4,7 +4,7 @@ export interface Attachment {
   id: string;
   name: string;
   type: "image" | "text";
-  data: string; // base64 for images, text content for text files
+  data: string;
   mimeType: string;
   size: number;
 }
@@ -13,7 +13,7 @@ export interface Message {
   id: string;
   role: Role;
   content: string;
-  timestamp: number; // Date.now()
+  timestamp: number;
   tokens?: {
     input: number;
     output: number;
@@ -30,4 +30,8 @@ export interface Conversation {
   messages: Message[];
   updatedAt: number;
   createdAt: number;
+  // NEW — multi-provider fields
+  provider?: string;     // 'anthropic' | 'openai' | 'google' | ...
+  model?: string;        // 'claude-sonnet-4-6' | 'gpt-4o' | ...
+  is_free_tier?: boolean;
 }
