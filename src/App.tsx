@@ -54,6 +54,7 @@ import {
   loadSessionMessages,
   updateChatTitle,
   deleteChat,
+  createChatWithMessages,
   loadProviders,
   type TokenSettings,
   type ProviderInfo,
@@ -1274,10 +1275,10 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
       setSessions(loaded);
       setSessionsLoaded(true);
       // If we have a saved activeId that exists in loaded sessions, keep it;
-      // otherwise fall back to the first session
+      // otherwise do NOT auto-select the first session — user must click to load it.
       setActiveId((prev) => {
         if (prev && loaded.find((s) => s.id === prev)) return prev;
-        return loaded[0]?.id ?? "";
+        return "";
       });
     }).catch(() => {
       setBackendDown(true);
@@ -1365,7 +1366,21 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
 
   // CHANGE 6 — handleSelectSession: lazy-load messages from backend
   const handleSelectSession = useCallback((id: string) => {
-    if (id === activeId) return;
+    // If clicking the already-active chat, still attempt to load messages
+    // when its messages are not yet loaded (e.g., persisted activeId but no cached messages).
+    if (id === activeId) {
+      const target = sessions.find((s) => s.id === id);
+      if (target && target.messages.length === 0 && !newSessionIdsRef.current.has(id)) {
+        setLoadingSessionId(id);
+        loadSessionMessages(id).then((msgs) => {
+          setLoadingSessionId((curr) => (curr === id ? null : curr));
+          setSessions((p) => p.map((s) => s.id === id ? { ...s, messages: msgs } : s));
+        }).catch(() => {
+          setLoadingSessionId((curr) => (curr === id ? null : curr));
+        });
+      }
+      return;
+    }
     abortRef.current?.abort();
     if (rafRef.current !== null) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
     setStreaming(false);
@@ -1375,22 +1390,16 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
     setActiveId(id);
     setInput("");
 
-    // Lazy-load messages only if not already in memory and not a brand-new local session
-    setSessions((prev) => {
-      const target = prev.find((s) => s.id === id);
-      if (target && target.messages.length === 0 && !newSessionIdsRef.current.has(id)) {
-        setLoadingSessionId(id);
-        loadSessionMessages(id).then((msgs) => {
-          setLoadingSessionId((curr) => curr === id ? null : curr);
-          if (msgs.length > 0) {
-            setSessions((p) => p.map((s) => s.id === id ? { ...s, messages: msgs } : s));
-          }
-        }).catch(() => {
-          setLoadingSessionId((curr) => curr === id ? null : curr);
-        });
-      }
-      return prev;
-    });
+    // Always fetch messages from backend for this chat (unless it's a brand-new local session)
+    if (!newSessionIdsRef.current.has(id)) {
+      setLoadingSessionId(id);
+      loadSessionMessages(id).then((msgs) => {
+        setLoadingSessionId((curr) => curr === id ? null : curr);
+        setSessions((p) => p.map((s) => s.id === id ? { ...s, messages: msgs } : s));
+      }).catch(() => {
+        setLoadingSessionId((curr) => curr === id ? null : curr);
+      });
+    }
   }, [activeId]);
 
   // CHANGE 8 — handleDeleteSession: optimistic UI + backend delete
@@ -1411,13 +1420,13 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
     const firstUser = messages.find((m) => m.role === "user");
     const title = firstUser ? deriveTitle(firstUser.content) : "Imported conversation";
 
-    // Create chat on backend first, then populate messages locally
-    const fresh = await createNewSession(provider, model, isCurrentModelFree());
+    // Create chat on backend including messages (single API call)
+    const fresh = await createChatWithMessages(provider, model, isCurrentModelFree(), title, messages);
     newSessionIdsRef.current.add(fresh.id);
+    // Ensure local fields are set
     fresh.messages = messages;
     fresh.updatedAt = now;
     fresh.title = title;
-    updateChatTitle(fresh.id, title).catch(() => {});
 
     setSessions((prev) => [fresh, ...prev]);
     setActiveId(fresh.id);
@@ -1593,6 +1602,29 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
     if (!text || streaming) return;
 
     let sessionId = activeId;
+
+    // If there is an active session whose messages aren't loaded yet (and
+    // it wasn't just created here), fetch its history first so the new
+    // message includes prior context. If no history is returned, fall back
+    // to creating a fresh chat to avoid overwriting an unrelated chat.
+    const maybeExisting = sessions.find((s) => s.id === sessionId);
+    if (maybeExisting && maybeExisting.messages.length === 0 && !newSessionIdsRef.current.has(sessionId)) {
+      try {
+        setLoadingSessionId(sessionId);
+        const msgs = await loadSessionMessages(sessionId);
+        setLoadingSessionId((curr) => (curr === sessionId ? null : curr));
+        if (msgs.length > 0) {
+          setSessions((p) => p.map((s) => s.id === sessionId ? { ...s, messages: msgs } : s));
+        } else {
+          // No messages persisted for this chat — treat as no active session
+          sessionId = "";
+        }
+      } catch {
+        setLoadingSessionId((curr) => (curr === sessionId ? null : curr));
+        sessionId = "";
+      }
+    }
+
     if (!sessionId || !sessions.find((s) => s.id === sessionId)) {
       const fresh = await createNewSession(provider, model, isCurrentModelFree());
       newSessionIdsRef.current.add(fresh.id);

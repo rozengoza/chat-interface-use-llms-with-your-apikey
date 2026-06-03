@@ -104,7 +104,10 @@ export async function loadSessionMessages(chatId: string): Promise<Message[]> {
     const res = await apiFetch(`/chats/${chatId}`);
     if (!res.ok) return [];
     const data = await res.json() as { chat: BackendChat; messages: BackendMessage[] };
-    return data.messages.map(backendMsgToMessage);
+    if (!data.messages || data.messages.length === 0) {
+      console.warn(`loadSessionMessages: no messages returned for chat ${chatId}`, data);
+    }
+    return (data.messages ?? []).map(backendMsgToMessage);
   } catch {
     return [];
   }
@@ -259,4 +262,62 @@ export async function loadProviders(): Promise<ProviderInfo[]> {
       },
     ];
   }
+}
+
+/**
+ * POST multiple messages into an existing chat so imports can be persisted
+ */
+export async function saveMessages(chatId: string, messages: Message[]): Promise<void> {
+  try {
+    // Convert to backend shape
+    const payload = messages.map((m) => ({ role: m.role, content: m.content, created_at: new Date(m.timestamp).toISOString() }));
+    await apiFetch(`/chats/${chatId}/messages`, {
+      method: "POST",
+      body: JSON.stringify({ messages: payload }),
+    });
+  } catch (e) {
+    console.warn("saveMessages failed", e);
+  }
+}
+
+/**
+ * Create a chat and persist initial messages in a single request.
+ * Uses the same POST /chats API the app already calls for new chats.
+ */
+export async function createChatWithMessages(
+  provider = "anthropic",
+  model = "claude-haiku-4-5-20251001",
+  isFreeTier = false,
+  title = "New conversation",
+  messages: Message[] = [],
+): Promise<Conversation> {
+  try {
+    const payload = {
+      provider,
+      model,
+      is_free_tier: isFreeTier,
+      title,
+      messages: messages.map((m) => ({ role: m.role, content: m.content, created_at: new Date(m.timestamp).toISOString() })),
+    };
+    const res = await apiFetch("/chats", { method: "POST", body: JSON.stringify(payload) });
+    if (res.ok) {
+      const data = await res.json() as { chat: BackendChat; messages?: BackendMessage[] };
+      const msgs = (data.messages ?? []).map(backendMsgToMessage);
+      return chatToConversation(data.chat, msgs);
+    }
+  } catch (e) {
+    console.warn("createChatWithMessages failed", e);
+  }
+
+  // Fallback to local-only chat when backend unavailable
+  return {
+    id: crypto.randomUUID(),
+    title,
+    messages,
+    updatedAt: Date.now(),
+    createdAt: Date.now(),
+    provider,
+    model,
+    is_free_tier: isFreeTier,
+  };
 }

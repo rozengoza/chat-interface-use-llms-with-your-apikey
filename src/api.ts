@@ -322,6 +322,44 @@ export const MODELS: ModelOption[] = [
 export const DEFAULT_MODEL = "gemini-2.0-flash";
 export const DEFAULT_PROVIDER = "gemini-free";
 
+// -------------------------
+// Simple local response cache
+// -------------------------
+const CACHE_PREFIX = "arc:resp:";
+
+function simpleHash(messages: { role: string; content: string }[]) {
+  const s = JSON.stringify(messages);
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = (h * 33) ^ s.charCodeAt(i);
+  // unsigned base36 string
+  return (h >>> 0).toString(36);
+}
+
+function getCachedResponse(key: string) {
+  try {
+    const raw = localStorage.getItem(CACHE_PREFIX + key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { ts: number; ttlSec: number; data: unknown };
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedResponse(key: string, data: unknown, ttlSec = 60 * 60 * 24) {
+  try {
+    const payload = { ts: Date.now(), ttlSec, data };
+    localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(payload));
+  } catch {
+    // ignore storage errors (quota, etc.)
+  }
+}
+
+function isCacheValid(payload: { ts: number; ttlSec: number } | null) {
+  if (!payload) return false;
+  return Date.now() - payload.ts < payload.ttlSec * 1000;
+}
+
 export interface StreamCallbacks {
   onChunk: (text: string) => void;
   onDone: (tokens: Message["tokens"]) => void;
@@ -348,6 +386,18 @@ export async function streamChat(
   }
 
   const plainMessages = messages.map((m) => ({ role: m.role, content: m.content }));
+  // Compute a short hash for these messages and check local cache
+  const msgHash = simpleHash(plainMessages);
+  const cacheKey = `${provider}:${model}:${chatId ?? "nochat"}:${msgHash}`;
+  const cached = getCachedResponse(cacheKey);
+  if (isCacheValid(cached)) {
+    try {
+      const payload: any = (cached as any).data;
+      if (payload?.assistantText) callbacks.onChunk(payload.assistantText);
+      callbacks.onDone(payload?.tokens ?? { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 });
+      return;
+    } catch { /* fall through to live request on parse errors */ }
+  }
 
   try {
     const res = await fetch(`${API_BASE}/completion`, {
@@ -380,6 +430,7 @@ export async function streamChat(
     const dec = new TextDecoder();
     let buf = "";
     let tokens: Message["tokens"] = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
+    let fullText = ""; // capture assistant text for caching
 
     // SSE parser — tracks current event name, then processes data lines
     let currentEvent = "";
@@ -408,8 +459,11 @@ export async function streamChat(
 
             if (currentEvent === "chunk" && evt.text) {
               callbacks.onChunk(evt.text);
+              fullText += evt.text;
             } else if (currentEvent === "done") {
               tokens = { input: 0, output: evt.tokens ?? 0, cacheRead: 0, cacheWrite: 0 };
+              // store response in cache for future identical requests
+              try { setCachedResponse(cacheKey, { assistantText: fullText, tokens }); } catch { /* ignore */ }
               callbacks.onDone(tokens);
               return;
             } else if (currentEvent === "error") {
