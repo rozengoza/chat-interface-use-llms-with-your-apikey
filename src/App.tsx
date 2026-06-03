@@ -1363,21 +1363,37 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
     setSessions((prev) => [s, ...prev]);
     setActiveId(s.id);
   }, [provider, model, isCurrentModelFree]);
+  // Helper: fetch messages with one retry if backend returns no messages
+  const fetchAndSetMessages = useCallback(async (id: string) => {
+    setLoadingSessionId(id);
+    try {
+      let msgs = await loadSessionMessages(id);
+      console.debug("initial loadSessionMessages", { id, count: msgs.length });
+      if (msgs.length === 0) {
+        // transient backend issue? retry once after short delay
+        await new Promise((r) => setTimeout(r, 500));
+        msgs = await loadSessionMessages(id);
+        console.debug("retry loadSessionMessages", { id, count: msgs.length });
+      }
+      setSessions((p) => p.map((s) => s.id === id ? { ...s, messages: msgs } : s));
+    } catch (e) {
+      console.error("fetchAndSetMessages error", e);
+    } finally {
+      setLoadingSessionId((curr) => (curr === id ? null : curr));
+    }
+  }, []);
 
   // CHANGE 6 — handleSelectSession: lazy-load messages from backend
   const handleSelectSession = useCallback((id: string) => {
     // If clicking the already-active chat, still attempt to load messages
     // when its messages are not yet loaded (e.g., persisted activeId but no cached messages).
+    console.debug("handleSelectSession called", { id, activeId });
+    console.debug("current sessions length", { len: sessions.length });
     if (id === activeId) {
       const target = sessions.find((s) => s.id === id);
+      console.debug("active click target", { targetExists: !!target, messagesLength: target?.messages.length, isNewLocal: newSessionIdsRef.current.has(id) });
       if (target && target.messages.length === 0 && !newSessionIdsRef.current.has(id)) {
-        setLoadingSessionId(id);
-        loadSessionMessages(id).then((msgs) => {
-          setLoadingSessionId((curr) => (curr === id ? null : curr));
-          setSessions((p) => p.map((s) => s.id === id ? { ...s, messages: msgs } : s));
-        }).catch(() => {
-          setLoadingSessionId((curr) => (curr === id ? null : curr));
-        });
+        void fetchAndSetMessages(id);
       }
       return;
     }
@@ -1392,15 +1408,10 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
 
     // Always fetch messages from backend for this chat (unless it's a brand-new local session)
     if (!newSessionIdsRef.current.has(id)) {
-      setLoadingSessionId(id);
-      loadSessionMessages(id).then((msgs) => {
-        setLoadingSessionId((curr) => curr === id ? null : curr);
-        setSessions((p) => p.map((s) => s.id === id ? { ...s, messages: msgs } : s));
-      }).catch(() => {
-        setLoadingSessionId((curr) => curr === id ? null : curr);
-      });
+      void fetchAndSetMessages(id);
     }
-  }, [activeId]);
+  }, [activeId, sessions, fetchAndSetMessages]);
+
 
   // CHANGE 8 — handleDeleteSession: optimistic UI + backend delete
   const handleDeleteSession = useCallback((id: string) => {
