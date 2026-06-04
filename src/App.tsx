@@ -563,11 +563,11 @@ function ArcLogo() {
     let repeats = 0;
 
     tl.fromTo(
-        els,
-        { scaleY: 0.60, scaleX: 1.30 },
-        { scaleY: 1.20, scaleX: 0.85, duration: 0.10, ease: "power3.out" },
-        0
-      )
+      els,
+      { scaleY: 0.60, scaleX: 1.30 },
+      { scaleY: 1.20, scaleX: 0.85, duration: 0.10, ease: "power3.out" },
+      0
+    )
       .to(els, { y: -22, duration: 0.42, ease: "power2.out" }, 0)
       .to(els, { scaleY: 1, scaleX: 1, duration: 0.30, ease: "power1.inOut" }, 0.10)
       .to(els, { y: 6, duration: 0.40, ease: "power2.in" }, 0.46)
@@ -1126,7 +1126,7 @@ function Sidebar({ sessions, activeId, collapsed, onToggle, onSelect, onNew, onD
         }
       </div>
       <div style={{ padding: collapsed ? "8px 6px" : "10px 12px", borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8, justifyContent: collapsed ? "center" : "space-between" }}>
-        <button onClick={() => onInfo?.()} title="App info" style={{ display: "flex", alignItems: "center", gap: 8, padding: collapsed ? "6px 6px" : "6px 10px", background: "transparent", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text-dim)", fontSize: 12.5 }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface2)") } onMouseLeave={(e) => (e.currentTarget.style.background = "transparent") }>
+        <button onClick={() => onInfo?.()} title="App info" style={{ display: "flex", alignItems: "center", gap: 8, padding: collapsed ? "6px 6px" : "6px 10px", background: "transparent", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text-dim)", fontSize: 12.5 }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface2)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
           <Info size={14} />{!collapsed && "About"}
         </button>
         {!collapsed && <span style={{ fontSize: 11, color: "var(--text-dim)", fontFamily: "'JetBrains Mono', monospace" }}>v{import.meta.env.VITE_APP_VERSION ?? "dev"}</span>}
@@ -1309,7 +1309,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
           break;
         }
       }
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   // Auto-switching based on API key was removed; users choose provider/model manually.
@@ -1478,7 +1478,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
   const handleRenameSession = useCallback((id: string, newTitle: string) => {
     if (!newTitle.trim()) return;
     setSessions((prev) => prev.map((s) => s.id === id ? { ...s, title: newTitle.trim() } : s));
-    updateChatTitle(id, newTitle.trim()).catch(() => {});
+    updateChatTitle(id, newTitle.trim()).catch(() => { });
   }, []);
 
   const handleLogout = useCallback(() => {
@@ -1675,7 +1675,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
     // CHANGE 11 — sync title to backend on first message
     if (isFirstMessage) {
       const newTitle = deriveTitle(text);
-      updateChatTitle(sessionId, newTitle).catch(() => {});
+      updateChatTitle(sessionId, newTitle).catch(() => { });
     }
 
     setInput("");
@@ -1805,23 +1805,23 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
             >
               {filteredProviders.length > 0
                 ? filteredProviders.flatMap((prov) =>
-                    prov.models.map((mdl) => (
-                      <option key={`${prov.slug}::${mdl.model_id}`} value={`${prov.slug}::${mdl.model_id}`}>
-                        {prov.name} · {mdl.display_name}{mdl.is_free ? " ✦" : ""}
-                      </option>
-                    ))
-                  )
-                : MODELS.map((m) => (
-                    <option key={m.id} value={`anthropic::${m.id}`}>{m.label}</option>
+                  prov.models.map((mdl) => (
+                    <option key={`${prov.slug}::${mdl.model_id}`} value={`${prov.slug}::${mdl.model_id}`}>
+                      {prov.name} · {mdl.display_name}{mdl.is_free ? " ✦" : ""}
+                    </option>
                   ))
+                )
+                : MODELS.map((m) => (
+                  <option key={m.id} value={`anthropic::${m.id}`}>{m.label}</option>
+                ))
               }
             </select>
-            
+
             {/* Indicator when models are filtered by API key */}
             {/* API-key provider hint disabled — users pick provider and model manually */}
-            
+
             {/* when no api key is set we show all fetched models; no special badge */}
-            
+
             {/* Premium model cost indicator */}
             {(model.includes("sonnet") || model.includes("gpt-4o") || model.includes("gemini-2.5-pro") || model.includes("opus")) && (
               <span title="Premium model — higher cost per token" style={{ fontSize: 10, fontFamily: "'JetBrains Mono', monospace", color: "var(--orange)", background: "rgba(200,146,42,0.12)", border: "1px solid rgba(200,146,42,0.3)", padding: "1px 6px", borderRadius: 4, flexShrink: 0 }}>
@@ -1968,38 +1968,125 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
 // ── InfoModal ──────────────────────────────────────────────────────────────
 function InfoModal({ onClose }: { onClose: () => void }) {
   return (
-    <div style={{ position: "fixed", inset: 0, background: "var(--modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 80, padding: 20, backdropFilter: "blur(6px)" }} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div style={{ background: "var(--surface)", border: "1px solid var(--border2)", borderRadius: 12, padding: 24, width: "100%", maxWidth: 720, boxShadow: "var(--shadow)", color: "var(--text)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "var(--modal-overlay)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 80,
+        padding: 20,
+        backdropFilter: "blur(6px)",
+      }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border2)",
+          borderRadius: 12,
+          padding: 24,
+          width: "100%",
+          maxWidth: 720,
+          boxShadow: "var(--shadow)",
+          color: "var(--text)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 12,
+          }}
+        >
           <div>
-            <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 22, margin: 0 }}>About ARC</h2>
-            <p style={{ margin: 0, marginTop: 6, color: "var(--text-muted)" }}>A lightweight client for multiple model providers.</p>
+            <h2
+              style={{
+                fontFamily: "'Instrument Serif', serif",
+                fontSize: 22,
+                margin: 0,
+              }}
+            >
+              About ARC
+            </h2>
+            <p style={{ margin: 0, marginTop: 6, color: "var(--text-muted)" }}>
+              A lightweight client for multiple model providers.
+            </p>
           </div>
-          <button onClick={onClose} style={{ color: "var(--text-muted)", display: "flex" }}><X size={18} /></button>
+          <button
+            onClick={onClose}
+            style={{ color: "var(--text-muted)", display: "flex" }}
+          >
+            <X size={18} />
+          </button>
         </div>
 
         <section style={{ marginBottom: 12 }}>
           <h3 style={{ margin: "6px 0", fontSize: 14 }}>Free models</h3>
-          <p style={{ margin: 0, color: "var(--text-muted)" }}>Some models are available without an API key (marked ✦). Use them freely — they're provided by the app's free-tier integration.</p>
+          <p style={{ margin: 0, color: "var(--text-muted)" }}>
+            Some models are available without an API key (marked ✦). Use them
+            freely — they're provided by the app's free-tier integration.
+          </p>
         </section>
 
         <section style={{ marginBottom: 12 }}>
-          <h3 style={{ margin: "6px 0", fontSize: 14 }}>Paid models / Bring your API key</h3>
-          <p style={{ margin: 0, color: "var(--text-muted)" }}>To use premium models, supply your provider API key via the key button. Keys are stored locally in your browser's Local Storage and never sent to our servers.</p>
+          <h3 style={{ margin: "6px 0", fontSize: 14 }}>
+            Paid models / Bring your API key
+          </h3>
+          <p style={{ margin: 0, color: "var(--text-muted)" }}>
+            To use premium models, supply your provider API key via the key
+            button. Keys are stored locally in your browser's Local Storage and
+            never sent to our servers.
+          </p>
         </section>
 
         <section style={{ marginBottom: 12 }}>
           <h3 style={{ margin: "6px 0", fontSize: 14 }}>Encrypted chats</h3>
-          <p style={{ margin: 0, color: "var(--text-muted)" }}>You can enable chat encryption by setting a password. The app stores only encrypted payloads and uses password-derived hashes locally to unlock them. Keep your password safe; we cannot recover it for you.</p>
+          <p style={{ margin: 0, color: "var(--text-muted)" }}>
+            You can enable chat encryption by setting a password. The app stores
+            only encrypted payloads and uses password-derived hashes locally to
+            unlock them. Keep your password safe; we cannot recover it for you.
+          </p>
         </section>
 
         <section style={{ marginBottom: 12 }}>
-          <h3 style={{ margin: "6px 0", fontSize: 14 }}>Importing conversations</h3>
-          <p style={{ margin: 0, color: "var(--text-muted)" }}>Import JSON exports from Claude or other providers via the Import button in the sidebar. The app will persist imported messages to your account (server must support message persistence).</p>
+          <h3 style={{ margin: "6px 0", fontSize: 14 }}>
+            Importing conversations
+          </h3>
+          <p style={{ margin: 0, color: "var(--text-muted)" }}>
+            Import JSON exports from Claude or other providers via the Import
+            button in the sidebar. The app will persist imported messages to your
+            account (server must support message persistence).
+          </p>
         </section>
 
-        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
-          <button onClick={onClose} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid var(--border2)", color: "var(--text-muted)" }}>Close</button>
+        {/* New link to the external about page */}
+        <div style={{ textAlign: "center", marginTop: 12, marginBottom: 8 }}>
+          <a
+            href="/about-arc.html"
+            style={{ color: "var(--accent)", textDecoration: "underline", fontSize: 13 }}
+          >
+            Learn more about ARC →
+          </a>
+        </div>
+
+        <div
+          style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}
+        >
+          <button
+            onClick={onClose}
+            style={{
+              padding: "8px 16px",
+              borderRadius: 8,
+              border: "1px solid var(--border2)",
+              color: "var(--text-muted)",
+            }}
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
