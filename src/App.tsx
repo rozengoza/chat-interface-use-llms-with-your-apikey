@@ -28,6 +28,7 @@ import {
   Copy,
   Link2,
   Info,
+  Menu,
   Moon,
   Sun,
   Download,
@@ -1245,6 +1246,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
 
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">(() => (localStorage.getItem("arc_theme") as "dark" | "light") ?? "dark");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Edit state
   const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
@@ -1836,7 +1838,8 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
             )}
           </div>
 
-          <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
+          {/* ── Desktop actions (hidden on mobile) ── */}
+          <div className="nav-desktop" style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
             <button onClick={handleExportConversation} disabled={!hasMessages} title="Export conversation as JSON" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 7, border: "1px solid var(--border)", color: "var(--text-muted)", opacity: hasMessages ? 1 : 0.35, transition: "background 0.15s, color 0.15s" }} onMouseEnter={(e) => { if (!hasMessages) return; e.currentTarget.style.background = "var(--surface2)"; e.currentTarget.style.color = "var(--text)"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}>
               <Download size={14} />
             </button>
@@ -1857,7 +1860,78 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
               <LogOut size={14} />
             </button>
           </div>
+
+          {/* ── Mobile hamburger (hidden on desktop) ── */}
+          <button
+            className="nav-mobile-btn"
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            title="Menu"
+            aria-label="Open menu"
+            style={{ display: "none", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 7, border: "1px solid var(--border)", color: "var(--text-muted)", flexShrink: 0, transition: "background 0.15s, color 0.15s" }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface2)"; e.currentTarget.style.color = "var(--text)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}
+          >
+            {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
         </header>
+
+        {/* ── Mobile menu popup ── */}
+        {mobileMenuOpen && (
+          <>
+            <div className="nav-mobile-overlay" onClick={() => setMobileMenuOpen(false)} />
+            <div className="nav-mobile-popup">
+              <div className="nav-mobile-popup-inner">
+                <button
+                  onClick={() => { handleExportConversation(); setMobileMenuOpen(false); }}
+                  disabled={!hasMessages}
+                  style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", borderRadius: 8, color: hasMessages ? "var(--text)" : "var(--text-dim)", fontSize: 13.5, cursor: hasMessages ? "pointer" : "default", opacity: hasMessages ? 1 : 0.4, width: "100%", textAlign: "left" }}
+                  onMouseEnter={(e) => { if (!hasMessages) return; e.currentTarget.style.background = "var(--surface2)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                >
+                  <Download size={15} /> Export conversation
+                </button>
+                <button
+                  onClick={() => { setTheme((t) => t === "dark" ? "light" : "dark"); setMobileMenuOpen(false); }}
+                  style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", borderRadius: 8, color: "var(--text)", fontSize: 13.5, width: "100%", textAlign: "left" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface2)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                >
+                  {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+                  {theme === "dark" ? "Light mode" : "Dark mode"}
+                </button>
+                <button
+                  onClick={() => { setShowKeyModal(true); setMobileMenuOpen(false); }}
+                  style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", borderRadius: 8, color: apiKey ? "var(--text)" : "var(--accent)", fontSize: 13.5, width: "100%", textAlign: "left" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface2)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                >
+                  <Key size={15} /> {apiKey ? "API key set" : "Add API key"}
+                </button>
+                <button
+                  onClick={() => { setShowSettings(true); setMobileMenuOpen(false); }}
+                  style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", borderRadius: 8, color: "var(--text)", fontSize: 13.5, width: "100%", textAlign: "left" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface2)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                >
+                  <Settings size={15} /> Settings
+                </button>
+                <div style={{ height: 1, background: "var(--border)", margin: "4px 0" }} />
+                <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px" }}>
+                  <span style={{ fontSize: 18 }}>{user.emoji}</span>
+                  <span style={{ fontSize: 13.5, color: "var(--text-muted)", fontWeight: 500 }}>{user.username}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", borderRadius: 8, color: "var(--red)", fontSize: 13.5, width: "100%", textAlign: "left" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(248,81,73,0.1)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                >
+                  <LogOut size={15} /> Sign out
+                </button>
+              </div>
+            </div>
+          </>
+        )}
 
         {backendDown && (
           <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 20px", background: "rgba(224,96,96,0.1)", borderBottom: "1px solid rgba(224,96,96,0.25)", flexShrink: 0 }}>
