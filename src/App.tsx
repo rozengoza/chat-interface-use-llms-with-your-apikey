@@ -1023,7 +1023,7 @@ function Sidebar({ sessions, activeId, collapsed, onToggle, onSelect, onNew, onD
   }
 
   return (
-    <aside style={{ width: collapsed ? 52 : 240, minWidth: collapsed ? 52 : 240, height: "100vh", background: "var(--surface)", borderRight: "1px solid var(--border)", display: "flex", flexDirection: "column", transition: "width 0.2s ease, min-width 0.2s ease", overflow: "hidden", flexShrink: 0 }}>
+    <aside className={`sidebar${collapsed ? " sidebar--collapsed" : ""}`} style={{ width: collapsed ? 52 : 240, minWidth: collapsed ? 52 : 240, height: "100vh", background: "var(--surface)", borderRight: "1px solid var(--border)", display: "flex", flexDirection: "column", transition: "width 0.2s ease, min-width 0.2s ease", overflow: "hidden", flexShrink: 0 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "space-between", padding: collapsed ? "14px 0" : "14px 12px", borderBottom: "1px solid var(--border)", flexShrink: 0, height: 54 }}>
         {!collapsed && <ArcLogo />}
         <button onClick={onToggle} title={collapsed ? "Expand sidebar" : "Collapse sidebar"} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 28, height: 28, borderRadius: 6, color: "var(--text-muted)", transition: "background 0.15s" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface2)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
@@ -1781,6 +1781,8 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
         onRename={handleRenameSession}
         onInfo={() => setShowInfo(true)}
       />
+      {/* ── Sidebar mobile overlay (closes sidebar when tapped outside) ── */}
+      <div className="sidebar-mobile-overlay" onClick={() => setSidebarCollapsed(true)} />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
         <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px", height: 54, borderBottom: "1px solid var(--border)", background: "var(--surface)", flexShrink: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>

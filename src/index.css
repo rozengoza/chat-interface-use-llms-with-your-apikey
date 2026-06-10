@@ -538,14 +538,42 @@ input:focus-visible
   transform: translate3d(0,0,0);
 }
 
-/* ── Responsive navbar ── */
+/* ── Responsive: mobile breakpoint ── */
 @media (max-width: 768px) {
+  /* Navbar: hide desktop buttons, show hamburger */
   .nav-desktop {
     display: none !important;
   }
 
   .nav-mobile-btn {
     display: flex !important;
+  }
+
+  /* Sidebar: overlay on top of chat panel instead of squeezing it */
+  .sidebar:not(.sidebar--collapsed) {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    width: 240px !important;
+    min-width: 240px !important;
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+/* ── Sidebar mobile overlay backdrop ── */
+.sidebar-mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  background: rgba(0,0,0,0.4);
+  animation: fadeIn 0.15s ease;
+}
+
+@media (max-width: 768px) {
+  .sidebar:not(.sidebar--collapsed) ~ .sidebar-mobile-overlay {
+    display: block;
   }
 }
 
