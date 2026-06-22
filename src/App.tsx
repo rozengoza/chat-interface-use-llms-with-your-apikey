@@ -4,6 +4,7 @@ import {
   useRef,
   useCallback,
   useMemo,
+  memo,
   type KeyboardEvent,
   type ChangeEvent,
 } from "react";
@@ -300,7 +301,7 @@ function handleCodeCopy(e: React.MouseEvent<HTMLDivElement>) {
   }
 }
 
-function MessageBubble({
+const MessageBubble = memo(function MessageBubble({
   msg, isStreaming, onEdit, onRegenerate,
   isEditing, editText, onEditChange, onEditSave, onEditCancel, onCodePreview,
 }: {
@@ -327,6 +328,21 @@ function MessageBubble({
       ta.focus();
     }
   }, [isEditing, editText]);
+
+  // Only re-parse markdown/re-highlight code when the content (or its
+  // streaming state) actually changes — not on every unrelated re-render
+  // (hover state, copy-button feedback, etc).
+  const renderedHtml = useMemo(() => {
+    if (isUser) return "";
+    const base = isStreaming ? renderMarkdown(closeUnclosedFences(msg.content)) : renderMarkdown(msg.content);
+    if (!isStreaming) return base;
+    const needle = "</code></pre>";
+    const idx = base.lastIndexOf(needle);
+    if (idx !== -1) {
+      return base.slice(0, idx) + '<span class="streaming-cursor"></span>' + base.slice(idx);
+    }
+    return base + '<span class="streaming-cursor"></span>';
+  }, [isUser, isStreaming, msg.content]);
 
   return (
     <div className="msg-enter msg-row" style={{
@@ -505,25 +521,28 @@ function MessageBubble({
                 onCodePreview?.(code, lang, filename);
               }
             }}
-            dangerouslySetInnerHTML={{
-              __html: (() => {
-                const base = isStreaming ? renderMarkdown(closeUnclosedFences(msg.content)) : renderMarkdown(msg.content);
-                if (!isStreaming) return base;
-                const needle = "</code></pre>";
-                const idx = base.lastIndexOf(needle);
-                if (idx !== -1) {
-                  return base.slice(0, idx) + '<span class="streaming-cursor"></span>' + base.slice(idx);
-                }
-                return base + '<span class="streaming-cursor"></span>';
-              })(),
-            }}
+            dangerouslySetInnerHTML={{ __html: renderedHtml }}
           />
         )}
         <TokenRow msg={msg} />
       </div>
     </div>
   );
-}
+}, (prev, next) => {
+  // Skip re-render (and the expensive markdown/highlight reparse) unless
+  // something that actually affects this bubble's output changed. During
+  // streaming, `sessions` is replaced wholesale every frame, but only the
+  // streaming message's `msg` reference actually changes — every other
+  // bubble's props stay referentially equal except the inline callback
+  // props (onEdit/onRegenerate/onCodePreview), whose identity doesn't
+  // affect what's rendered, so we deliberately ignore them here.
+  return (
+    prev.msg === next.msg &&
+    prev.isStreaming === next.isStreaming &&
+    prev.isEditing === next.isEditing &&
+    (!prev.isEditing && !next.isEditing ? true : prev.editText === next.editText)
+  );
+});
 
 function Thinking() {
   return (
@@ -1262,6 +1281,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
   const abortRef = useRef<AbortController | null>(null);
   const streamBuf = useRef("");
   const rafRef = useRef<number | null>(null);
+  const lastFlushRef = useRef(0);
 
   const activeConv = sessions.find((s) => s.id === activeId) ?? null;
 
@@ -1356,7 +1376,19 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
     bottomRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "instant" });
   }, []);
 
-  useEffect(() => { if (streaming || thinking) scrollToBottom(); }, [sessions, thinking, streaming, scrollToBottom]);
+  // While streaming, `sessions` updates ~60x/sec. Re-triggering a "smooth"
+  // scrollIntoView on every one of those frames interrupts and restarts the
+  // browser's in-flight scroll animation each time, which is what produces
+  // the janky/robotic "random pauses" feel. Snap instantly instead — since
+  // it now runs every frame anyway, it reads as a continuous smooth follow.
+  // Also skip it entirely if the user has scrolled up to read earlier
+  // content, so streaming doesn't yank their view back down.
+  useEffect(() => {
+    if (!streaming && !thinking) return;
+    const el = scrollContainerRef.current;
+    if (el && el.scrollHeight - el.scrollTop - el.clientHeight > 200) return;
+    scrollToBottom(false);
+  }, [sessions, thinking, streaming, scrollToBottom]);
   useEffect(() => { scrollToBottom(); }, [activeId, activeConv?.messages.length, scrollToBottom]);
 
   // CHANGE 7 — handleNewSession is now async; createNewSession hits the backend
@@ -1564,13 +1596,21 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
             setThinking(false);
           } else if (rafRef.current === null) {
             rafRef.current = requestAnimationFrame(() => {
+              rafRef.current = null;
+              // Cap the markdown/syntax-highlight reparse rate to ~30fps.
+              // Doing a full reparse on every single 60fps frame is what
+              // causes frame drops (and visible stutter) once a code block
+              // grows large; the next chunk re-schedules this check, so
+              // nothing is lost — only displayed a couple frames later.
+              const now = performance.now();
+              if (now - lastFlushRef.current < 32) return;
+              lastFlushRef.current = now;
               const content = streamBuf.current;
               setSessions((prev) => prev.map((s) =>
                 s.id === sessionId
                   ? { ...s, messages: s.messages.map((m) => m.id === streamMsgId ? { ...m, content } : m) }
                   : s
               ));
-              rafRef.current = null;
             });
           }
         },
