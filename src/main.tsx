@@ -1,6 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import './index.css'
+import './landing.css'
 import Root from './Root'
 import { Analytics } from "@vercel/analytics/react"
 
@@ -11,7 +13,9 @@ document.documentElement.setAttribute('data-theme', savedTheme)
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Analytics />
-    <Root />
+    <BrowserRouter>
+      <Analytics />
+      <Root />
+    </BrowserRouter>
   </StrictMode>,
 )

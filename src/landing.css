@@ -1,0 +1,197 @@
+@import "tailwindcss";
+
+/* ── Landing page theme tokens ── */
+@theme {
+  --color-accent: var(--accent);
+  --color-accent-warm: var(--accent-warm);
+  --color-accent-dim: var(--accent-dim);
+  --color-accent-glow: var(--accent-glow);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface2);
+  --color-surface-glass: var(--surface-glass);
+  --color-border: var(--border);
+  --color-border2: var(--border2);
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-dim: var(--text-dim);
+  --color-green: var(--green);
+  --color-orange: var(--orange);
+  --color-red: var(--red);
+  --color-code-bg: var(--code-bg);
+  --color-modal-overlay: var(--modal-overlay);
+  --font-sans: "Outfit", sans-serif;
+  --font-serif: "Instrument Serif", serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-fade-up: fadeUp 0.6s ease-out forwards;
+  --animate-shimmer: shimmer 2s ease-in-out infinite;
+}
+
+/* ── Keyframes ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+@keyframes shineSweep {
+  0%, 100% { left: -100%; }
+  50% { left: 150%; }
+}
+
+/* ── Tesla-inspired scroll snap ── */
+html {
+  scroll-behavior: smooth;
+}
+.landing-snap {
+  scroll-snap-type: y proximity;
+  overflow-y: scroll;
+  height: 100vh;
+}
+.landing-snap > section,
+.landing-snap > div > section {
+  scroll-snap-align: start;
+}
+
+/* ── Glass card ── */
+.glass-card {
+  background: var(--surface-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+/* ── Gradient text ── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent), var(--accent-warm), #f59e0b);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 4s ease-in-out infinite;
+}
+
+/* ── Landing scrollbar ── */
+.landing-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+.landing-scroll::-webkit-scrollbar-track { background: transparent; }
+.landing-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── Terminal ── */
+.cursor-blink::after {
+  content: "▊";
+  animation: cursorBlink 1s step-end infinite;
+  color: var(--accent);
+}
+
+/* ── Hero background ── */
+.hero-mesh {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, var(--accent-glow), transparent),
+    radial-gradient(ellipse 50% 50% at 80% 80%, rgba(139, 92, 246, 0.06), transparent),
+    transparent;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Tesla-style decorative shine ── */
+.section-shine {
+  position: relative;
+  overflow: hidden;
+}
+.section-shine::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
+  animation: shineSweep 8s ease-in-out infinite;
+}
+
+/* ── Provider tabs ── */
+.provider-tab-active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ── Tesla-style section sizing ── */
+.tesla-section {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+}
+
+/* ── Tesla-style divider ── */
+.tesla-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin: 0 auto;
+  max-width: 1280px;
+}
+
+/* ── Hero-style pill badge ── */
+.tesla-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 100px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  border: 1px solid var(--border-accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* ── Tesla CTA button base — matches HeroSection padding ── */
+.tesla-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 28px;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  line-height: 1.4;
+}
+.tesla-btn--primary {
+  background: var(--accent);
+  color: var(--bg);
+}
+.tesla-btn--primary:hover {
+  opacity: 0.85;
+}
+.tesla-btn--secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border2);
+}
+.tesla-btn--secondary:hover {
+  border-color: var(--text);
+}

@@ -1,5 +1,7 @@
-import { useState } from "react";
-import { Eye, EyeOff, LogIn, UserPlus, Loader } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Eye, EyeOff, LogIn, UserPlus, Loader, Sun, Moon } from "lucide-react";
+import { useTheme } from "./hooks/useTheme";
 import type { UserProfile } from "./auth";
 import { loginUser, registerUser, loadUsers, resetPassword } from "./auth";
 import faviconUrl from "./assets/favicon.svg";
@@ -17,11 +19,24 @@ const PRESET_EMOJIS = ["🐱", "🐶", "💠", "🩵", "💚", "🦊", "🐺", "
 
 interface LoginPageProps {
   onLogin: (user: UserProfile) => void;
+  defaultMode?: "login" | "register";
 }
 
-export default function LoginPage({ onLogin }: LoginPageProps) {
+export default function LoginPage({ onLogin, defaultMode = "login" }: LoginPageProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const hasUsers = loadUsers().length > 0;
-  const [mode, setMode] = useState<"login" | "register">(hasUsers ? "login" : "register");
+  const { theme, toggleTheme } = useTheme();
+  const [mode, setMode] = useState<"login" | "register">(defaultMode);
+
+  // Sync mode with URL path on mount and route changes
+  useEffect(() => {
+    if (location.pathname === "/signup") {
+      setMode("register");
+    } else {
+      setMode("login");
+    }
+  }, [location.pathname]);
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -49,9 +64,11 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         if (password !== confirmPw) { setError("Passwords do not match."); return; }
         const user = await registerUser(username.trim(), password, color, emoji);
         onLogin(user);
+        navigate("/chat");
       } else {
         const user = await loginUser(username.trim(), password);
         onLogin(user);
+        navigate("/chat");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -111,7 +128,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         padding: 32,
         boxShadow: "var(--shadow)",
       }}>
-        <div style={{ textAlign: "center", marginBottom: 28 }}>
+        <div style={{ textAlign: "center", marginBottom: 28, position: "relative" }}>
           <div style={{
             width: 52, height: 52,
             display: "flex", alignItems: "center", justifyContent: "center",
@@ -119,9 +136,33 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           }}>
             <img src={faviconUrl} alt="arc" style={{ width: 48, height: 48 }} />
           </div>
-          {/* <h1 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 26, color: "var(--text)", marginBottom: 4 }}>
-            ARC
-          </h1> */}
+
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+            style={{
+              position: "absolute",
+              top: -8,
+              right: -8,
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "var(--surface2)",
+              border: "1px solid var(--border)",
+              color: "var(--text-muted)",
+              cursor: "pointer",
+              transition: "color 0.15s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
+          >
+            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+
           <p style={{ fontSize: 13, color: "var(--text-muted)" }}>
             {mode === "login" ? "Sign in to your account" : "Create your account"}
           </p>
@@ -134,7 +175,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           }}>
             {hasUsers && (
               <button
-                onClick={() => { setMode("login"); setError(""); }}
+                onClick={() => { navigate("/login"); setError(""); }}
                 style={{
                   flex: 1, padding: "7px 0", borderRadius: 6, fontSize: 13, fontWeight: 500,
                   background: mode === "login" ? "var(--surface2)" : "transparent",
@@ -354,7 +395,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               Don't have an account?{" "}
               <button
                 type="button"
-                onClick={() => { setMode("register"); setError(""); }}
+                onClick={() => { navigate("/signup"); setError(""); }}
                 style={{
                   background: "none",
                   border: "none",
@@ -373,7 +414,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               Already have an account?{" "}
               <button
                 type="button"
-                onClick={() => { setMode("login"); setError(""); }}
+                onClick={() => { navigate("/login"); setError(""); }}
                 style={{
                   background: "none",
                   border: "none",
