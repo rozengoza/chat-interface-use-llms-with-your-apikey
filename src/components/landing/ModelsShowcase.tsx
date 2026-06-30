@@ -175,13 +175,19 @@ export default function ModelsShowcase() {
   }, []);
 
   useEffect(() => {
-    if (isPaused) {
+  if (isPaused) {
+    if (autoPlayTimer.current !== null) {
       clearInterval(autoPlayTimer.current);
-      return;
     }
-    autoPlayTimer.current = setInterval(nextProvider, 5000);
-    return () => clearInterval(autoPlayTimer.current);
-  }, [isPaused, nextProvider]);
+    return;
+  }
+  autoPlayTimer.current = window.setInterval(nextProvider, 5000);
+  return () => {
+    if (autoPlayTimer.current !== null) {
+      clearInterval(autoPlayTimer.current);
+    }
+  };
+}, [isPaused]);
 
   const setCardRef = (el: HTMLDivElement | null, i: number) => {
     if (el) cardRefs.current[i] = el;

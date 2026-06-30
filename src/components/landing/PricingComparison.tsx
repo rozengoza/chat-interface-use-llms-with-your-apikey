@@ -94,7 +94,7 @@ export default function PricingComparison() {
   const tablesRef = useRef<HTMLDivElement>(null);
   const calloutRef = useRef<HTMLDivElement>(null);
   const tipRef = useRef<HTMLDivElement>(null);
-  const costNumberRefs = useRef<HTMLSpanElement[]>([]);
+  // const costNumberRefs = useRef<HTMLSpanElement[]>([]);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -145,9 +145,9 @@ export default function PricingComparison() {
     return () => ctx.revert();
   }, []);
 
-  const setCostRef = (el: HTMLSpanElement | null, i: number) => {
-    if (el) costNumberRefs.current[i] = el;
-  };
+  // const setCostRef = (el: HTMLSpanElement | null, i: number) => {
+  //   if (el) costNumberRefs.current[i] = el;
+  // };
 
   return (
     <section
