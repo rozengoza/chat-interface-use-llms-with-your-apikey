@@ -1,197 +1,184 @@
 @import "tailwindcss";
 
-/* ── Landing page theme tokens ── */
+/*
+ * ── ARC marketing pages: "Patch Bay" ──────────────────────────────────
+ * Concept: your API key is a direct signal patched into a provider — no
+ * subscription sitting in the middle. The visual language borrows from
+ * patch cables / equipment racks: a saturated ink base (not near-black),
+ * three signal-cable accent hues used with intent (not one dim accent),
+ * condensed industrial numerals, routed connector lines instead of cards.
+ */
 @theme {
-  --color-accent: var(--accent);
-  --color-accent-warm: var(--accent-warm);
-  --color-accent-dim: var(--accent-dim);
-  --color-accent-glow: var(--accent-glow);
-  --color-surface: var(--surface);
-  --color-surface2: var(--surface2);
-  --color-surface-glass: var(--surface-glass);
-  --color-border: var(--border);
-  --color-border2: var(--border2);
-  --color-bg: var(--bg);
-  --color-text: var(--text);
-  --color-text-muted: var(--text-muted);
-  --color-text-dim: var(--text-dim);
-  --color-green: var(--green);
-  --color-orange: var(--orange);
-  --color-red: var(--red);
-  --color-code-bg: var(--code-bg);
-  --color-modal-overlay: var(--modal-overlay);
+  --color-pb-bg: var(--pb-bg);
+  --color-pb-surface: var(--pb-surface);
+  --color-pb-surface2: var(--pb-surface2);
+  --color-pb-rule: var(--pb-rule);
+  --color-pb-text: var(--pb-text);
+  --color-pb-text-dim: var(--pb-text-dim);
+  --color-pb-coral: var(--pb-coral);
+  --color-pb-teal: var(--pb-teal);
+  --color-pb-amber: var(--pb-amber);
+  --font-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
   --font-sans: "Outfit", sans-serif;
-  --font-serif: "Instrument Serif", serif;
   --font-mono: "JetBrains Mono", monospace;
-  --animate-float: float 6s ease-in-out infinite;
-  --animate-fade-up: fadeUp 0.6s ease-out forwards;
-  --animate-shimmer: shimmer 2s ease-in-out infinite;
 }
 
-/* ── Keyframes ── */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-12px); }
+:root {
+  --pb-bg: #f3f1e8;
+  --pb-surface: #ffffff;
+  --pb-surface2: #eae7db;
+  --pb-rule: #d7d3c2;
+  --pb-text: #14162b;
+  --pb-text-dim: #6b6f8c;
+  --pb-coral: #e14a37;
+  --pb-teal: #0e9c86;
+  --pb-amber: #c97f0f;
 }
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
+@media (prefers-color-scheme: dark) {
+  :root {
+    --pb-bg: #12162b;
+    --pb-surface: #1a1f3d;
+    --pb-surface2: #202649;
+    --pb-rule: #313966;
+    --pb-text: #f4f1e8;
+    --pb-text-dim: #8c93bd;
+    --pb-coral: #ff6b58;
+    --pb-teal: #35d6be;
+    --pb-amber: #ffb648;
+  }
 }
-@keyframes shimmer {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+:root[data-theme="dark"] {
+  --pb-bg: #12162b; --pb-surface: #1a1f3d; --pb-surface2: #202649; --pb-rule: #313966;
+  --pb-text: #f4f1e8; --pb-text-dim: #8c93bd; --pb-coral: #ff6b58; --pb-teal: #35d6be; --pb-amber: #ffb648;
 }
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-@keyframes cursorBlink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-@keyframes shineSweep {
-  0%, 100% { left: -100%; }
-  50% { left: 150%; }
-}
-
-/* ── Tesla-inspired scroll snap ── */
-html {
-  scroll-behavior: smooth;
-}
-.landing-snap {
-  scroll-snap-type: y proximity;
-  overflow-y: scroll;
-  height: 100vh;
-}
-.landing-snap > section,
-.landing-snap > div > section {
-  scroll-snap-align: start;
+:root[data-theme="light"] {
+  --pb-bg: #f3f1e8; --pb-surface: #ffffff; --pb-surface2: #eae7db; --pb-rule: #d7d3c2;
+  --pb-text: #14162b; --pb-text-dim: #6b6f8c; --pb-coral: #e14a37; --pb-teal: #0e9c86; --pb-amber: #c97f0f;
 }
 
-/* ── Glass card ── */
-.glass-card {
-  background: var(--surface-glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-}
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
-/* ── Gradient text ── */
-.gradient-text {
-  background: linear-gradient(135deg, var(--accent), var(--accent-warm), #f59e0b);
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradientShift 4s ease-in-out infinite;
-}
+/* ── Layout ── */
+.pb-container { max-width: 1280px; margin-inline: auto; width: 100%; }
+.pb-px { padding-inline: clamp(1.25rem, 1rem + 2.5vw, 3rem); }
+.pb-section { padding-block: clamp(4rem, 2.5rem + 6vw, 7rem); }
 
-/* ── Landing scrollbar ── */
-.landing-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-.landing-scroll::-webkit-scrollbar-track { background: transparent; }
-.landing-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-
-/* ── Terminal ── */
-.cursor-blink::after {
-  content: "▊";
-  animation: cursorBlink 1s step-end infinite;
-  color: var(--accent);
+/* ── Type ── */
+.pb-display {
+  font-family: "Big Shoulders Display", "Arial Narrow", sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
+  line-height: 0.92;
+  color: var(--pb-text);
 }
-
-/* ── Hero background ── */
-.hero-mesh {
-  background:
-    radial-gradient(ellipse 80% 60% at 50% -10%, var(--accent-glow), transparent),
-    radial-gradient(ellipse 50% 50% at 80% 80%, rgba(139, 92, 246, 0.06), transparent),
-    transparent;
-  position: relative;
-  z-index: 1;
+.pb-heading {
+  font-family: "Big Shoulders Display", "Arial Narrow", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 0.98;
+  color: var(--pb-text);
+  font-size: clamp(1.9rem, 1.55rem + 1.75vw, 2.9rem);
 }
-
-/* ── Tesla-style decorative shine ── */
-.section-shine {
-  position: relative;
-  overflow: hidden;
-}
-.section-shine::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 60%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
-  animation: shineSweep 8s ease-in-out infinite;
-}
-
-/* ── Provider tabs ── */
-.provider-tab-active {
-  background: var(--accent-dim);
-  color: var(--accent);
-  border-color: var(--accent);
-}
-
-/* ── Tesla-style section sizing ── */
-.tesla-section {
-  min-height: 80vh;
-  display: flex;
-  align-items: center;
-}
-
-/* ── Tesla-style divider ── */
-.tesla-divider {
-  width: 100%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--border), transparent);
-  margin: 0 auto;
-  max-width: 1280px;
-}
-
-/* ── Hero-style pill badge ── */
-.tesla-badge {
+.pb-label {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 16px;
-  border-radius: 100px;
-  font-size: 0.8125rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.75rem;
   font-weight: 500;
-  letter-spacing: 0.03em;
-  border: 1px solid var(--border-accent);
-  color: var(--accent);
-  background: var(--accent-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pb-text-dim);
+}
+.pb-label::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  background: var(--tick, var(--pb-coral));
+  flex-shrink: 0;
 }
 
-/* ── Tesla CTA button base — matches HeroSection padding ── */
-.tesla-btn {
+/* ── Scroll reveal: quiet, single fade — no bounce/stagger theatrics ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+.reveal.is-visible { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { transition: none !important; opacity: 1 !important; transform: none !important; }
+}
+
+/* ── Panel ── */
+.pb-panel {
+  border: 1px solid var(--pb-rule);
+  background: var(--pb-surface);
+  border-radius: 3px;
+}
+
+/* ── Buttons ── */
+.pb-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 28px;
-  border-radius: 10px;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  transition: all 0.2s ease;
+  gap: 10px;
+  padding: 13px 26px;
+  border-radius: 3px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  border: none;
-  line-height: 1.4;
+  border: 1px solid transparent;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
 }
-.tesla-btn--primary {
-  background: var(--accent);
-  color: var(--bg);
+.pb-btn:focus-visible { outline: 2px solid var(--pb-coral); outline-offset: 2px; }
+.pb-btn--primary {
+  background: var(--pb-coral);
+  color: var(--pb-bg);
 }
-.tesla-btn--primary:hover {
-  opacity: 0.85;
-}
-.tesla-btn--secondary {
+.pb-btn--primary:hover { transform: translateY(-1px); filter: brightness(1.08); }
+.pb-btn--secondary {
   background: transparent;
-  color: var(--text);
-  border: 1px solid var(--border2);
+  color: var(--pb-text);
+  border-color: var(--pb-rule);
 }
-.tesla-btn--secondary:hover {
-  border-color: var(--text);
+.pb-btn--secondary:hover { border-color: var(--pb-text); }
+
+/* ── Signal node (used inline + in the routing diagram) ── */
+.pb-node {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--tick, var(--pb-coral));
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tick, var(--pb-coral)) 20%, transparent);
 }
+
+/* ── Tabular data ── */
+.pb-mono { font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; }
+
+/* ── Rule / divider ── */
+.pb-rule { height: 1px; background: var(--pb-rule); border: none; }
+
+/* ── Scrollbar for horizontal strips (provider rail) ── */
+.pb-scroll::-webkit-scrollbar { height: 5px; }
+.pb-scroll::-webkit-scrollbar-track { background: transparent; }
+.pb-scroll::-webkit-scrollbar-thumb { background: var(--pb-rule); border-radius: 3px; }
+
+/* ── Cursor blink (terminal-flavored code sample) ── */
+@keyframes pbBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+.pb-cursor::after {
+  content: "";
+  display: inline-block;
+  width: 8px; height: 1em;
+  margin-left: 2px;
+  background: var(--pb-coral);
+  vertical-align: text-bottom;
+  animation: pbBlink 1s step-end infinite;
+}
+@media (prefers-reduced-motion: reduce) { .pb-cursor::after { animation: none; } }

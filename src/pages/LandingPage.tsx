@@ -2,14 +2,13 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import type { UserProfile } from "../auth";
 import NavBar from "../components/landing/NavBar";
-import Stars from "../components/Stars";
 import HeroSection from "../components/landing/HeroSection";
 import FeaturesSection from "../components/landing/FeaturesSection";
+import HowItWorksSection from "../components/landing/HowItWorksSection";
 import ModelsShowcase from "../components/landing/ModelsShowcase";
 import PricingComparison from "../components/landing/PricingComparison";
 import ClaudeCodeSection from "../components/landing/ClaudeCodeSection";
-import HowItWorksSection from "../components/landing/HowItWorksSection";
-import GitHubSection from "../components/landing/GitHubSection";
+import TransparencySection from "../components/landing/TransparencySection";
 import Footer from "../components/landing/Footer";
 
 interface LandingPageProps {
@@ -19,26 +18,20 @@ interface LandingPageProps {
 export default function LandingPage({ user }: LandingPageProps) {
   const location = useLocation();
 
-  // Scroll to hash on mount or when hash changes
+  // Scroll to the anchor on mount / hash change (nav links, footer links)
   useEffect(() => {
-    if (location.hash) {
-      const el = document.querySelector(location.hash);
-      if (el) {
-        setTimeout(() => el.scrollIntoView({ behavior: "smooth" }), 100);
-      }
-    }
+    if (!location.hash) return;
+    const el = document.querySelector(location.hash);
+    if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth" }), 100);
   }, [location.hash]);
 
-  // Scroll to top on direct navigation to /
+  // Reset scroll on a plain navigation to "/"
   useEffect(() => {
-    if (!location.hash) {
-      window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
-    }
+    if (!location.hash) window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg)", color: "var(--text)" }}>
-      <Stars />
+    <div className="min-h-screen bg-bg text-text">
       <NavBar user={user} />
       <main>
         <HeroSection user={user} />
@@ -47,7 +40,7 @@ export default function LandingPage({ user }: LandingPageProps) {
         <ModelsShowcase />
         <PricingComparison />
         <ClaudeCodeSection />
-        <GitHubSection />
+        <TransparencySection />
       </main>
       <Footer />
     </div>

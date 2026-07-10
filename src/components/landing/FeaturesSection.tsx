@@ -1,201 +1,87 @@
-import { useRef, useEffect } from "react";
-import { Key, Zap, Layers, Code2, Wallet, Shield } from "lucide-react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { splitElement } from "../../hooks/useTextSplit";
+import { ArrowRight, CircleX } from "lucide-react";
+import { useReveal } from "../../hooks/useReveal";
 
-gsap.registerPlugin(ScrollTrigger);
+const SIGNAL_COLORS = ["var(--pb-coral)", "var(--pb-teal)", "var(--pb-amber)"];
 
 const FEATURES = [
-  {
-    icon: Key,
-    title: "Bring Your Own Key",
-    description:
-      "Your API key never touches our servers. It lives in your browser's memory and dies when you close the tab. Every request goes directly to the AI provider — zero middlemen.",
-  },
-  {
-    icon: Wallet,
-    title: "Pay for What You Use",
-    description:
-      "No $20/month subscription. Most developers spend under $5/month with API pricing. Use DeepSeek Flash at $0.14/MTok for casual chats, or Claude Opus at $5/MTok for complex reasoning — you control the cost.",
-  },
-  {
-    icon: Layers,
-    title: "22+ Models, One Interface",
-    description:
-      "Anthropic. OpenAI. Google. DeepSeek. Groq. Mistral. xAI. OpenRouter. Ollama. Switch providers and models in one click — no need to manage multiple chat apps or subscriptions.",
-  },
-  {
-    icon: Zap,
-    title: "Instant Streaming",
-    description:
-      "Token-by-token SSE streaming gives you real-time responses. No waiting for the full completion — see every word as it's generated, just like the native chat interfaces.",
-  },
-  {
-    icon: Shield,
-    title: "100% Transparent",
-    description:
-      "Open source under MIT. Open DevTools, watch the network tab — every request goes to the AI provider and nowhere else. You don't have to trust us. That's the point.",
-  },
-  {
-    icon: Code2,
-    title: "Claude Code Ready",
-    description:
-      "Use your API keys with Claude Code CLI. Run terminal-native coding sessions with the models you pay for. Set ANTHROPIC_API_KEY and go — ARC keys work everywhere.",
-  },
+  { title: "Bring your own key", desc: "Lives in your browser's memory, dies when the tab closes. Every request goes straight to the provider — zero middlemen." },
+  { title: "Pay for what you use", desc: "Most developers land under $5/month at API pricing. DeepSeek Flash at $0.14/MTok, Claude Opus at $5/MTok — you choose per message." },
+  { title: "22+ models, one interface", desc: "Anthropic, OpenAI, Google, DeepSeek, Groq, Mistral, xAI, OpenRouter, Ollama. Switch providers and models mid-conversation." },
+  { title: "Instant streaming", desc: "Token-by-token SSE. No spinner waiting on a full completion — you read the response as it's generated." },
+  { title: "100% transparent", desc: "Open DevTools, watch the network tab. Every request goes to the provider and nowhere else — MIT licensed, inspect it yourself." },
+  { title: "Claude Code ready", desc: "Same key, your terminal. Set ANTHROPIC_API_KEY and go — ARC keys work anywhere the Anthropic SDK does." },
+];
+
+const FOR_YOU = [
+  "Devs with an API key who don't want to pay $20/month for a chat UI",
+  "Anyone who hits free-tier limits mid-work and wants to just continue",
+  "Developers who want full API access — longer context, no rate limits",
+  "Users who want to switch models and providers freely",
+];
+const NOT_FOR_YOU = [
+  "Non-developers without an API key from any provider",
+  "Heavy daily users where flat-rate Pro pricing actually wins",
+  "Teams needing centralized billing — this is bring-your-own, per user",
+  "Users who prefer managed auth and key handling",
 ];
 
 export default function FeaturesSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
-  const subtitleRef = useRef<HTMLParagraphElement>(null);
-  const cardsRef = useRef<HTMLDivElement[]>([]);
-  const bottomRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const section = sectionRef.current;
-    const header = headerRef.current;
-    const title = titleRef.current;
-    const subtitle = subtitleRef.current;
-    const cards = cardsRef.current;
-    const bottom = bottomRef.current;
-    if (!section || !header || !title || !subtitle || !cards.length) return;
-
-    const ctx = gsap.context(() => {
-      // Split heading into word spans
-      const titleWords = splitElement(title);
-      // Use gsap.from() — keeps elements visible by default, animates from offset state
-      gsap.set(subtitle, { opacity: 0, y: 20 });
-      gsap.set(cards, { opacity: 0, y: 50, scale: 0.92 });
-      gsap.set(bottom, { opacity: 0, y: 30 });
-
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: "top 82%",
-          toggleActions: "play none none reverse",
-        },
-      });
-
-      // Word-by-word title reveal — FROM state (visible by default, animates in when triggered)
-      tl.from(titleWords, {
-        opacity: 0,
-        y: 30,
-        rotateX: -20,
-        duration: 0.4,
-        stagger: 0.04,
-        ease: "power2.out",
-      })
-        .to(subtitle, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, "-=0.15")
-        // Cards stagger in with bounce
-        .to(cards, {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.5,
-          stagger: 0.08,
-          ease: "back.out(1.3)",
-        }, "-=0.25")
-        // Bottom comparison
-        .to(bottom, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, "-=0.2");
-    });
-
-    return () => ctx.revert();
-  }, []);
-
-  const setCardRef = (el: HTMLDivElement | null, i: number) => {
-    if (el) cardsRef.current[i] = el;
-  };
+  const headerRef = useReveal<HTMLDivElement>();
+  const listRef = useReveal<HTMLDivElement>();
+  const verdictRef = useReveal<HTMLDivElement>();
 
   return (
-    <section
-      id="features"
-      ref={sectionRef}
-      className="tesla-section py-28 sm:py-36 px-4 sm:px-8 lg:px-12"
-      style={{ background: "var(--bg)" }}
-    >
-      <div style={{ maxWidth: 1280, margin: "0 auto", width: "100%" }}>
-        {/* Section header */}
-        <div ref={headerRef} className="text-center mb-20">
-          <h2
-            ref={titleRef}
-            className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 tracking-tight"
-            style={{ fontFamily: "'Instrument Serif', serif", color: "var(--text)", letterSpacing: "-0.02em" }}
-          >
-            Why ARC?
-          </h2>
-          <p
-            ref={subtitleRef}
-            className="text-base sm:text-lg max-w-3xl mx-auto leading-relaxed"
-            style={{ color: "var(--text-muted)", lineHeight: "1.7" }}
-          >
-            Most AI chat apps charge $20/month for a subscription — whether you use it or not.
-            If you already have an API key, you're very likely overpaying. ARC plugs straight
-            into your key with zero subscription fees.
-          </p>
+    <section id="features" className="pb-section pb-px" style={{ background: "var(--pb-surface)" }}>
+      <div className="pb-container">
+        <div ref={headerRef} className="reveal max-w-2xl mb-14">
+          <span className="pb-label mb-4" style={{ "--tick": "var(--pb-teal)" } as React.CSSProperties}>Spec</span>
+          <h2 className="pb-heading">What ARC actually does</h2>
         </div>
 
-        {/* Feature cards grid — larger gap and padding */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
-          {FEATURES.map((feature, i) => {
-            const FeatureIcon = feature.icon;
-            return (
-              <div key={feature.title} ref={(el) => setCardRef(el, i)}>
-                <div
-                  className="group glass-card p-8 lg:p-10 h-full transition-all duration-300 hover:-translate-y-1"
-                  style={{ borderColor: "var(--border)" }}
-                >
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 transition-colors duration-300"
-                    style={{ background: "var(--accent-dim)" }}
-                  >
-                    <FeatureIcon size={22} style={{ color: "var(--accent)" }} />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-3" style={{ color: "var(--text)" }}>
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)", lineHeight: "1.8" }}>
-                    {feature.description}
-                  </p>
-                </div>
+        <div ref={listRef} className="reveal grid grid-cols-1 md:grid-cols-2" style={{ borderTop: "1px solid var(--pb-rule)" }}>
+          {FEATURES.map((f, i) => (
+            <div
+              key={f.title}
+              className="flex gap-4 py-6 pr-6"
+              style={{
+                borderBottom: "1px solid var(--pb-rule)",
+                borderRight: i % 2 === 0 ? "1px solid var(--pb-rule)" : undefined,
+                paddingLeft: i % 2 === 1 ? "24px" : undefined,
+              }}
+            >
+              <span className="pb-node mt-2" style={{ "--tick": SIGNAL_COLORS[i % 3] } as React.CSSProperties} />
+              <div>
+                <h3 className="text-base font-semibold mb-1.5" style={{ color: "var(--pb-text)" }}>{f.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--pb-text-dim)" }}>{f.desc}</p>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
 
-        {/* Who this is for / not for */}
-        <div ref={bottomRef} className="mt-24 lg:mt-28">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10" style={{ maxWidth: 896, margin: "0 auto" }}>
-            <div
-              className="rounded-2xl p-8 lg:p-10 border"
-              style={{ background: "var(--surface)", borderColor: "var(--green)" }}
-            >
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: "var(--green)" }}>
-                ✅ Who this is for
-              </h3>
-              <ul className="space-y-3 text-sm" style={{ color: "var(--text-muted)", lineHeight: "1.8" }}>
-                <li>→ Devs with an API key who don't want to pay $20/month for a chat UI</li>
-                <li>→ Anyone who hits free limits mid-work and wants to just continue</li>
-                <li>→ Developers who want full API access — longer context, no rate limits, custom prompts</li>
-                <li>→ Users who want to switch between models and providers freely</li>
-              </ul>
-            </div>
-
-            <div
-              className="rounded-2xl p-8 lg:p-10 border"
-              style={{ background: "var(--surface)", borderColor: "var(--red)" }}
-            >
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: "var(--red)" }}>
-                ❌ Who this is not for
-              </h3>
-              <ul className="space-y-3 text-sm" style={{ color: "var(--text-muted)", lineHeight: "1.8" }}>
-                <li>→ Non-developers without an API key from any provider</li>
-                <li>→ Heavy daily users where Pro pricing actually makes sense</li>
-                <li>→ Teams needing centralized billing (bring your own key is per-user)</li>
-                <li>→ Users who prefer managed authentication and key handling</li>
-              </ul>
-            </div>
+        <div ref={verdictRef} className="reveal mt-16 grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <h3 className="pb-mono text-xs uppercase tracking-widest mb-4 flex items-center gap-2" style={{ color: "var(--pb-teal)" }}>
+              <ArrowRight size={13} /> Built for
+            </h3>
+            <ul className="space-y-3">
+              {FOR_YOU.map((item) => (
+                <li key={item} className="text-sm leading-relaxed pl-4" style={{ color: "var(--pb-text-dim)", borderLeft: "2px solid var(--pb-teal)" }}>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="pb-mono text-xs uppercase tracking-widest mb-4 flex items-center gap-2" style={{ color: "var(--pb-coral)" }}>
+              <CircleX size={13} /> Not built for
+            </h3>
+            <ul className="space-y-3">
+              {NOT_FOR_YOU.map((item) => (
+                <li key={item} className="text-sm leading-relaxed pl-4" style={{ color: "var(--pb-text-dim)", borderLeft: "2px solid var(--pb-coral)" }}>
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>

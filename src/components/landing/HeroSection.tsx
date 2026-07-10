@@ -1,9 +1,48 @@
-import { useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronDown, ArrowRight } from "lucide-react";
-import gsap from "gsap";
+import { ArrowRight } from "lucide-react";
+import { useReveal } from "../../hooks/useReveal";
 import type { UserProfile } from "../../auth";
-import faviconUrl from "../../assets/favicon.svg";
+
+const PROVIDERS = ["Anthropic", "OpenAI", "Google", "DeepSeek", "Groq", "Mistral", "xAI", "OpenRouter", "Ollama"];
+const SIGNAL_COLORS = ["var(--pb-coral)", "var(--pb-teal)", "var(--pb-amber)"];
+
+const VIEW_W = 460;
+const VIEW_H = 420;
+const SOURCE = { x: 34, y: VIEW_H / 2 };
+
+function RoutingDiagram() {
+  const gap = VIEW_H / PROVIDERS.length;
+  return (
+    <svg viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} className="w-full h-auto" role="img" aria-label="Your API key routed directly to nine providers">
+      {PROVIDERS.map((provider, i) => {
+        const color = SIGNAL_COLORS[i % SIGNAL_COLORS.length];
+        const target = { x: VIEW_W - 34, y: gap * i + gap / 2 };
+        const cx1 = SOURCE.x + (target.x - SOURCE.x) * 0.45;
+        const cx2 = SOURCE.x + (target.x - SOURCE.x) * 0.75;
+        return (
+          <g key={provider}>
+            <path
+              d={`M ${SOURCE.x},${SOURCE.y} C ${cx1},${SOURCE.y} ${cx2},${target.y} ${target.x - 6},${target.y}`}
+              fill="none"
+              stroke={color}
+              strokeWidth="1.5"
+              opacity="0.55"
+            />
+            <circle cx={target.x} cy={target.y} r="3" fill={color} />
+            <text x={target.x - 12} y={target.y + 3.5} textAnchor="end" fontFamily="'JetBrains Mono', monospace" fontSize="11" fill="var(--pb-text-dim)">
+              {provider}
+            </text>
+          </g>
+        );
+      })}
+      <circle cx={SOURCE.x} cy={SOURCE.y} r="7" fill="var(--pb-coral)" />
+      <circle cx={SOURCE.x} cy={SOURCE.y} r="13" fill="none" stroke="var(--pb-coral)" strokeWidth="1" opacity="0.4" />
+      <text x={SOURCE.x} y={SOURCE.y + 26} textAnchor="middle" fontFamily="'JetBrains Mono', monospace" fontSize="10" fontWeight="600" fill="var(--pb-text)" letterSpacing="0.05em">
+        YOUR KEY
+      </text>
+    </svg>
+  );
+}
 
 interface HeroSectionProps {
   user: UserProfile | null;
@@ -11,185 +50,44 @@ interface HeroSectionProps {
 
 export default function HeroSection({ user }: HeroSectionProps) {
   const navigate = useNavigate();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const logoRef = useRef<HTMLImageElement>(null);
-  const taglineRef = useRef<HTMLHeadingElement>(null);
-  const subtitleRef = useRef<HTMLParagraphElement>(null);
-  const ctasRef = useRef<HTMLDivElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-
-    tl.fromTo(
-      logoRef.current,
-      { opacity: 0, scale: 0.85, y: -10 },
-      { opacity: 1, scale: 1, y: 0, duration: 0.7 }
-    )
-      .fromTo(
-        taglineRef.current,
-        { opacity: 0, y: 28 },
-        { opacity: 1, y: 0, duration: 0.7 },
-        "-=0.3"
-      )
-      .fromTo(
-        subtitleRef.current,
-        { opacity: 0, y: 16 },
-        { opacity: 1, y: 0, duration: 0.6 },
-        "-=0.3"
-      )
-      .fromTo(
-        ctasRef.current?.children || [],
-        { opacity: 0, y: 12 },
-        { opacity: 1, y: 0, duration: 0.5, stagger: 0.12 },
-        "-=0.2"
-      )
-      .fromTo(
-        scrollRef.current,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.5 },
-        "-=0.1"
-      );
-
-    return () => {
-      tl.kill();
-    };
-  }, []);
+  const textRef = useReveal<HTMLDivElement>({ threshold: 0.05 });
+  const diagramRef = useReveal<HTMLDivElement>({ threshold: 0.05 });
 
   return (
-    <section
-      ref={containerRef}
-      className="hero-mesh relative min-h-screen flex flex-col items-center justify-center px-5 sm:px-8 lg:px-12 overflow-hidden"
-    >
-      {/* Decorative blobs */}
-      <div
-        className="absolute top-20 left-10 w-72 h-72 rounded-full opacity-20 animate-float"
-        style={{ background: "var(--accent-glow)", filter: "blur(80px)" }}
-      />
-      <div
-        className="absolute bottom-20 right-10 w-96 h-96 rounded-full opacity-10"
-        style={{
-          background: "radial-gradient(circle, rgba(139,92,246,0.3), transparent)",
-          filter: "blur(100px)",
-          animation: "float 8s ease-in-out infinite",
-          animationDelay: "-4s",
-        }}
-      />
+    <section className="pb-px pt-32 pb-20 sm:pt-40 sm:pb-24">
+      <div className="pb-container">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-12 lg:gap-8 items-center">
+          <div ref={textRef} className="reveal">
+            <span className="pb-label mb-6" style={{ "--tick": "var(--pb-coral)" } as React.CSSProperties}>
+              Bring your own key
+            </span>
+            <h1 className="pb-display text-[13vw] sm:text-[7.5vw] lg:text-[4.4vw]">
+              One key.
+              <br />
+              Nine providers.
+              <br />
+              <span style={{ color: "var(--pb-coral)" }}>Zero markup.</span>
+            </h1>
+            <p className="mt-7 text-base sm:text-lg max-w-lg" style={{ color: "var(--pb-text-dim)" }}>
+              No $20/month subscription sitting between you and the model. Your API key talks
+              straight to the provider — <strong style={{ color: "var(--pb-text)" }}>22+ models</strong>,
+              billed by the token, from your browser.
+            </p>
+            <div className="mt-9 flex flex-wrap items-center gap-4">
+              <button onClick={() => navigate(user ? "/chat" : "/signup")} className="pb-btn pb-btn--primary group">
+                {user ? "Open chat" : "Get started, free"}
+                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+              </button>
+              <a href="https://github.com/rozengoza" target="_blank" rel="noopener noreferrer" className="pb-btn pb-btn--secondary">
+                View source
+              </a>
+            </div>
+          </div>
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center text-center" style={{ maxWidth: 896, width: "100%" }}>
-        {/* Logo */}
-        <div className="mb-8">
-          <img
-            ref={logoRef}
-            src={faviconUrl}
-            alt="ARC"
-            className="w-20 h-20 sm:w-24 sm:h-24 drop-shadow-lg"
-          />
+          <div ref={diagramRef} className="reveal pb-panel p-6">
+            <RoutingDiagram />
+          </div>
         </div>
-
-        {/* Badge */}
-        <div
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium mb-6 border"
-          style={{
-            background: "var(--accent-dim)",
-            borderColor: "var(--border-accent)",
-            color: "var(--accent)",
-          }}
-        >
-          <span className="w-2 h-2 rounded-full animate-shimmer" style={{ background: "var(--accent)" }} />
-          Open Source · MIT · Self-hostable Backend
-        </div>
-
-        {/* Tagline */}
-        <h1
-          ref={taglineRef}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 tracking-tight"
-          style={{ fontFamily: "'Instrument Serif', serif", color: "var(--text)" }}
-        >
-          Bring Your Own{" "}
-          <span className="gradient-text">API Key.</span>
-          <br />
-          Chat with the models{" "}
-          <span className="gradient-text">you</span> pay for.
-        </h1>
-
-        {/* Subtitle */}
-        <p
-          ref={subtitleRef}
-          className="text-base sm:text-lg md:text-xl max-w-2xl mb-10 leading-relaxed"
-          style={{ color: "var(--text-muted)" }}
-        >
-          No $20/month subscription. No surprise charges. Just you, your API key,
-          and <strong style={{ color: "var(--text)" }}>22+ AI models</strong> across every major
-          provider — Anthropic, OpenAI, Google, DeepSeek, and more.
-          Pay once per token, not once per month.
-        </p>
-
-        {/* CTAs */}
-        <div ref={ctasRef} className="flex flex-col sm:flex-row gap-4">
-          {user ? (
-            <button
-              onClick={() => navigate("/chat")}
-              className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-base font-semibold transition-all duration-200 hover:scale-105 shadow-lg"
-              style={{
-                background: "var(--accent)",
-                color: "var(--bg)",
-                boxShadow: "var(--shadow-accent)",
-              }}
-            >
-              Open Chat
-              <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
-            </button>
-          ) : (
-            <button
-              onClick={() => navigate("/signup")}
-              className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-base font-semibold transition-all duration-200 hover:scale-105 shadow-lg"
-              style={{
-                background: "var(--accent)",
-                color: "var(--bg)",
-                boxShadow: "var(--shadow-accent)",
-              }}
-            >
-              Get Started Free
-              <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
-            </button>
-          )}
-          <a
-            href="https://github.com/rozengoza"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-base font-semibold transition-all duration-200 hover:scale-105 border"
-            style={{
-              color: "var(--text)",
-              borderColor: "var(--border2)",
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.605-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12 24 5.37 18.63 0 12 0z"/>
-              </svg>
-            View on GitHub
-          </a>
-          <button
-            onClick={() => navigate("/about")}
-            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-medium transition-all duration-200 border"
-            style={{ color: "var(--text-muted)", borderColor: "var(--border)" }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--text)"; e.currentTarget.style.color = "var(--text)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-muted)"; }}
-          >
-            About the API
-          </button>
-        </div>
-      </div>
-
-      {/* Scroll indicator */}
-      <div
-        ref={scrollRef}
-        className="absolute bottom-8 flex flex-col items-center gap-2"
-        style={{ color: "var(--text-dim)" }}
-      >
-        <span className="text-xs font-medium tracking-widest uppercase">Scroll</span>
-        <ChevronDown size={16} className="animate-bounce" />
       </div>
     </section>
   );

@@ -1,9 +1,15 @@
-@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Big+Shoulders+Display:wght@700;800;900&display=swap");
 
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* In @layer base so Tailwind's utility classes (pt-*, p-*, m-*, ...) — which
+   live in @layer utilities — can still override this reset. An *unlayered*
+   rule here would beat every layered utility regardless of specificity or
+   source order, silently zeroing out any margin/padding utility class. */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 }
 
 :root {
