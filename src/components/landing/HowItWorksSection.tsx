@@ -11,7 +11,7 @@ export default function HowItWorksSection() {
   const ref = useReveal<HTMLDivElement>();
 
   return (
-    <section className="pb-section pb-px" style={{ background: "var(--pb-bg)" }}>
+    <section className="pb-section pb-gutter" style={{ background: "var(--pb-bg)" }}>
       <div className="pb-container">
         <div className="max-w-2xl mb-14">
           <span className="pb-label mb-4" style={{ "--tick": "var(--pb-amber)" } as React.CSSProperties}>Sequence</span>

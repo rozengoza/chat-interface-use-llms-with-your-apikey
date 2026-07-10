@@ -15,41 +15,41 @@
 :root {
   color-scheme: dark;
 
-  /* ── Core palette ── */
-  --bg:             #1a1917;
-  --surface:        #211f1c;
-  --surface2:       #2a2723;
-  --surface-glass:  rgba(33,31,28,0.75);
-  --border:         #38352f;
-  --border2:        #4a4640;
-  --border-accent:  rgba(204,120,92,0.3);
+  /* ── Core palette — "Patch Bay": ink-navy ground, patch-cable signal accents ── */
+  --bg:             #12162b;
+  --surface:        #1a1f3d;
+  --surface2:       #202649;
+  --surface-glass:  rgba(26,31,61,0.75);
+  --border:         #313966;
+  --border2:        #3d4570;
+  --border-accent:  rgba(255,107,88,0.3);
 
-  --text:           #eeebe6;
-  --text-muted:     #9e9a94;
-  --text-dim:       #5c5852;
+  --text:           #f4f1e8;
+  --text-muted:     #b7bcdb;
+  --text-dim:       #8c93bd;
 
-  --accent:         #cc785c;
-  --accent-warm:    #d4896a;
-  --accent-dim:     rgba(204,120,92,0.13);
-  --accent-glow:    rgba(204,120,92,0.06);
+  --accent:         #ff6b58; /* signal coral */
+  --accent-warm:    #ff8a72;
+  --accent-dim:     rgba(255,107,88,0.15);
+  --accent-glow:    rgba(255,107,88,0.08);
 
-  --green:          #6aaa7e;
-  --orange:         #c8922a;
-  --red:            #e06060;
+  --green:          #35d6be; /* signal teal */
+  --orange:         #ffb648; /* signal amber */
+  --red:            #e0607a;
 
   --shadow-sm:      0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
   --shadow:         0 4px 16px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.3);
   --shadow-lg:      0 12px 40px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3);
-  --shadow-accent:  0 4px 20px rgba(204,120,92,0.15);
+  --shadow-accent:  0 4px 20px rgba(255,107,88,0.18);
 
-  --modal-overlay:  rgba(10,9,8,0.75);
+  --modal-overlay:  rgba(8,10,20,0.75);
 
-  --code-bg:        #131210;
+  --code-bg:        #0e1226;
   --code-header-bg: rgba(255,255,255,0.03);
   --badge-bg:       rgba(255,255,255,0.05);
-  --inline-code-bg: rgba(204,120,92,0.1);
-  --inline-code-fg: #e8956d;
-  --inline-code-bd: rgba(204,120,92,0.2);
+  --inline-code-bg: rgba(255,107,88,0.1);
+  --inline-code-fg: #ff9d8c;
+  --inline-code-bd: rgba(255,107,88,0.2);
 
   /* ── Premium extras ── */
   --grain-opacity:  0.025;
@@ -61,41 +61,41 @@
 /* ── Light theme ── */
 html[data-theme="light"] {
   color-scheme: light;
-  /* Warmer, more vibrant light palette */
-  --bg:             #fffaf6;
-  --surface:        #fff7f2;
-  --surface2:       #fff1e8;
-  --surface-glass:  rgba(255,250,245,0.9);
-  --border:         #fde6da;
-  --border2:        #f7d9c8;
-  --border-accent:  rgba(255,107,53,0.18);
+  /* Literal thermal-paper light: same signal accents, warm-neutral paper ground */
+  --bg:             #f3f1e8;
+  --surface:        #ffffff;
+  --surface2:       #eae7db;
+  --surface-glass:  rgba(255,255,255,0.9);
+  --border:         #d7d3c2;
+  --border2:        #c7c2ac;
+  --border-accent:  rgba(225,74,55,0.2);
 
-  --text:           #1a1a18;
-  --text-muted:     #6b5e57;
-  --text-dim:       #8f8278;
+  --text:           #14162b;
+  --text-muted:     #454863;
+  --text-dim:       #6b6f8c;
 
-  --accent:         #ff6b35; /* vibrant orange */
-  --accent-warm:    #ff8a4b;
-  --accent-dim:     rgba(255,107,53,0.14);
-  --accent-glow:    rgba(255,107,53,0.10);
+  --accent:         #e14a37; /* signal coral, deepened for light contrast */
+  --accent-warm:    #ea6650;
+  --accent-dim:     rgba(225,74,55,0.12);
+  --accent-glow:    rgba(225,74,55,0.08);
 
-  --green:          #3a7d52;
-  --orange:         #a67c2a;
-  --red:            #c0392b;
+  --green:          #0e9c86; /* signal teal */
+  --orange:         #c97f0f; /* signal amber */
+  --red:            #c94a5f;
 
   --shadow-sm:      0 4px 10px rgba(17,17,17,0.06), 0 1px 2px rgba(17,17,17,0.04);
   --shadow:         0 8px 30px rgba(17,17,17,0.08), 0 2px 6px rgba(17,17,17,0.06);
   --shadow-lg:      0 20px 60px rgba(17,17,17,0.10), 0 6px 20px rgba(17,17,17,0.06);
-  --shadow-accent:  0 6px 30px rgba(255,107,53,0.08);
+  --shadow-accent:  0 6px 30px rgba(225,74,55,0.12);
 
-  --modal-overlay:  rgba(0,0,0,0.4);
+  --modal-overlay:  rgba(20,22,43,0.4);
 
-  --code-bg:        #11100f;
+  --code-bg:        #14162b;
   --code-header-bg: rgba(255,255,255,0.06);
-  --badge-bg:       rgba(255,255,255,0.06);
-  --inline-code-bg: rgba(255,139,75,0.12);
-  --inline-code-fg: #7a2b10;
-  --inline-code-bd: rgba(255,139,75,0.22);
+  --badge-bg:       rgba(20,22,43,0.06);
+  --inline-code-bg: rgba(225,74,55,0.1);
+  --inline-code-fg: #b23a2a;
+  --inline-code-bd: rgba(225,74,55,0.2);
 
   --grain-opacity:  0.02;
 }

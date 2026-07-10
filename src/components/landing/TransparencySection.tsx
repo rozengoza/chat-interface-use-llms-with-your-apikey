@@ -23,7 +23,7 @@ export default function TransparencySection() {
   const bodyRef = useReveal<HTMLDivElement>();
 
   return (
-    <section id="transparency" className="pb-section pb-px" style={{ background: "var(--pb-bg)" }}>
+    <section id="transparency" className="pb-section pb-gutter" style={{ background: "var(--pb-bg)" }}>
       <div className="pb-container">
         <div className="max-w-2xl mb-10">
           <span className="pb-label mb-4" style={{ "--tick": "var(--pb-teal)" } as React.CSSProperties}>Transparency</span>

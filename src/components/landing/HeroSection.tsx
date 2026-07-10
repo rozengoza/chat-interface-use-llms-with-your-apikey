@@ -54,7 +54,7 @@ export default function HeroSection({ user }: HeroSectionProps) {
   const diagramRef = useReveal<HTMLDivElement>({ threshold: 0.05 });
 
   return (
-    <section className="pb-px pt-32 pb-20 sm:pt-40 sm:pb-24">
+    <section className="pb-gutter pt-32 pb-20 sm:pt-40 sm:pb-24">
       <div className="pb-container">
         <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-12 lg:gap-8 items-center">
           <div ref={textRef} className="reveal">

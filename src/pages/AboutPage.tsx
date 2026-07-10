@@ -82,7 +82,7 @@ export default function AboutPage({ user }: AboutPageProps) {
       <main>
 
         {/* ── Hero ── */}
-        <section className="pb-px pt-36 pb-16 sm:pt-44 sm:pb-20">
+        <section className="pb-gutter pt-36 pb-16 sm:pt-44 sm:pb-20">
           <div className="pb-container">
             <div ref={heroRef} className="reveal">
               <Label tick="var(--pb-coral)">Reference</Label>
@@ -99,7 +99,7 @@ export default function AboutPage({ user }: AboutPageProps) {
         </section>
 
         {/* ── Production infrastructure ── */}
-        <section className="pb-section pb-px" style={{ background: "var(--pb-surface)" }}>
+        <section className="pb-section pb-gutter" style={{ background: "var(--pb-surface)" }}>
           <div className="pb-container">
             <div className="max-w-2xl mb-12">
               <Label tick="var(--pb-teal)">Infrastructure</Label>
@@ -128,7 +128,7 @@ export default function AboutPage({ user }: AboutPageProps) {
         </section>
 
         {/* ── Architecture ── */}
-        <section className="pb-section pb-px" style={{ background: "var(--pb-bg)" }}>
+        <section className="pb-section pb-gutter" style={{ background: "var(--pb-bg)" }}>
           <div className="pb-container">
             <div className="max-w-2xl mb-12">
               <Label tick="var(--pb-amber)">Architecture</Label>
@@ -152,7 +152,7 @@ export default function AboutPage({ user }: AboutPageProps) {
                 <text x="510" y="50" textAnchor="middle" fill="var(--pb-teal)" fontSize="8" fontFamily="'JetBrains Mono', monospace">PostgreSQL</text>
                 <rect x="460" y="70" width="100" height="38" fill="none" stroke="var(--pb-amber)" strokeWidth="1" />
                 <text x="510" y="86" textAnchor="middle" fill="var(--pb-text-dim)" fontSize="9" fontFamily="'JetBrains Mono', monospace">AI Providers</text>
-                <text x="510" y="100" textAnchor="middle" fill="var(--pb-amber)" fontSize="8" fontFamily="'JetBrains Mono', monospace">Anthropic / OpenAI / …</text>
+                <text x="510" y="100" textAnchor="middle" fill="var(--pb-amber)" fontSize="8" fontFamily="'JetBrains Mono', monospace">Deepseek/ …</text>
                 <rect x="460" y="120" width="100" height="38" fill="none" stroke="var(--pb-rule)" strokeWidth="1" />
                 <text x="510" y="136" textAnchor="middle" fill="var(--pb-text-dim)" fontSize="9" fontFamily="'JetBrains Mono', monospace">Neon Auth</text>
                 <text x="510" y="150" textAnchor="middle" fill="var(--pb-text)" fontSize="8" fontFamily="'JetBrains Mono', monospace">JWKS · RS256</text>
@@ -167,7 +167,7 @@ export default function AboutPage({ user }: AboutPageProps) {
         </section>
 
         {/* ── Auth & encryption flow — a real sequence, numbered ── */}
-        <section className="pb-section pb-px" style={{ background: "var(--pb-surface)" }}>
+        <section className="pb-section pb-gutter" style={{ background: "var(--pb-surface)" }}>
           <div className="pb-container">
             <div className="max-w-2xl mb-12">
               <Label tick="var(--pb-coral)">Security</Label>
@@ -190,7 +190,7 @@ export default function AboutPage({ user }: AboutPageProps) {
         </section>
 
         {/* ── API reference ── */}
-        <section className="pb-section pb-px" style={{ background: "var(--pb-bg)" }}>
+        <section className="pb-section pb-gutter" style={{ background: "var(--pb-bg)" }}>
           <div className="pb-container">
             <div className="max-w-2xl mb-12">
               <Label tick="var(--pb-teal)">API</Label>
@@ -222,7 +222,7 @@ export default function AboutPage({ user }: AboutPageProps) {
         </section>
 
         {/* ── Import / export ── */}
-        <section className="pb-section pb-px" style={{ background: "var(--pb-surface)" }}>
+        <section className="pb-section pb-gutter" style={{ background: "var(--pb-surface)" }}>
           <div className="pb-container">
             <div className="max-w-2xl mb-12">
               <Label tick="var(--pb-amber)">Portability</Label>
@@ -252,7 +252,7 @@ export default function AboutPage({ user }: AboutPageProps) {
         </section>
 
         {/* ── Deployment ── */}
-        <section className="pb-section pb-px" style={{ background: "var(--pb-bg)" }}>
+        <section className="pb-section pb-gutter" style={{ background: "var(--pb-bg)" }}>
           <div className="pb-container">
             <div className="max-w-2xl mb-12">
               <Label tick="var(--pb-coral)">Deploy</Label>

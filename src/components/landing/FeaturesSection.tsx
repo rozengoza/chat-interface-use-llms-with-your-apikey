@@ -31,7 +31,7 @@ export default function FeaturesSection() {
   const verdictRef = useReveal<HTMLDivElement>();
 
   return (
-    <section id="features" className="pb-section pb-px" style={{ background: "var(--pb-surface)" }}>
+    <section id="features" className="pb-section pb-gutter" style={{ background: "var(--pb-surface)" }}>
       <div className="pb-container">
         <div ref={headerRef} className="reveal max-w-2xl mb-14">
           <span className="pb-label mb-4" style={{ "--tick": "var(--pb-teal)" } as React.CSSProperties}>Spec</span>

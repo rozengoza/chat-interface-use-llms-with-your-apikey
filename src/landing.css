@@ -23,37 +23,22 @@
   --font-mono: "JetBrains Mono", monospace;
 }
 
+/*
+ * `--pb-*` are aliases onto the app-wide tokens in index.css, not a second
+ * palette. index.css's `:root` (dark) / `html[data-theme="light"]` already
+ * carry the same "Patch Bay" colors, so the whole app — landing, about,
+ * chat, login — shares one source of truth and switches theme together.
+ */
 :root {
-  --pb-bg: #f3f1e8;
-  --pb-surface: #ffffff;
-  --pb-surface2: #eae7db;
-  --pb-rule: #d7d3c2;
-  --pb-text: #14162b;
-  --pb-text-dim: #6b6f8c;
-  --pb-coral: #e14a37;
-  --pb-teal: #0e9c86;
-  --pb-amber: #c97f0f;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --pb-bg: #12162b;
-    --pb-surface: #1a1f3d;
-    --pb-surface2: #202649;
-    --pb-rule: #313966;
-    --pb-text: #f4f1e8;
-    --pb-text-dim: #8c93bd;
-    --pb-coral: #ff6b58;
-    --pb-teal: #35d6be;
-    --pb-amber: #ffb648;
-  }
-}
-:root[data-theme="dark"] {
-  --pb-bg: #12162b; --pb-surface: #1a1f3d; --pb-surface2: #202649; --pb-rule: #313966;
-  --pb-text: #f4f1e8; --pb-text-dim: #8c93bd; --pb-coral: #ff6b58; --pb-teal: #35d6be; --pb-amber: #ffb648;
-}
-:root[data-theme="light"] {
-  --pb-bg: #f3f1e8; --pb-surface: #ffffff; --pb-surface2: #eae7db; --pb-rule: #d7d3c2;
-  --pb-text: #14162b; --pb-text-dim: #6b6f8c; --pb-coral: #e14a37; --pb-teal: #0e9c86; --pb-amber: #c97f0f;
+  --pb-bg: var(--bg);
+  --pb-surface: var(--surface);
+  --pb-surface2: var(--surface2);
+  --pb-rule: var(--border);
+  --pb-text: var(--text);
+  --pb-text-dim: var(--text-dim);
+  --pb-coral: var(--accent);
+  --pb-teal: var(--green);
+  --pb-amber: var(--orange);
 }
 
 html { scroll-behavior: smooth; }
@@ -61,7 +46,7 @@ html { scroll-behavior: smooth; }
 
 /* ── Layout ── */
 .pb-container { max-width: 1280px; margin-inline: auto; width: 100%; }
-.pb-px { padding-inline: clamp(1.25rem, 1rem + 2.5vw, 3rem); }
+.pb-gutter { padding-inline: clamp(1.25rem, 1rem + 2.5vw, 3rem); }
 .pb-section { padding-block: clamp(4rem, 2.5rem + 6vw, 7rem); }
 
 /* ── Type ── */

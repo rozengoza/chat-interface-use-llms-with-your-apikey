@@ -53,7 +53,7 @@ export default function PricingComparison() {
   const metersRef = useReveal<HTMLDivElement>();
 
   return (
-    <section id="pricing" className="pb-section pb-px" style={{ background: "var(--pb-bg)" }}>
+    <section id="pricing" className="pb-section pb-gutter" style={{ background: "var(--pb-bg)" }}>
       <div className="pb-container">
         <div ref={headerRef} className="reveal max-w-2xl mb-12">
           <span className="pb-label mb-4" style={{ "--tick": "var(--pb-amber)" } as React.CSSProperties}>Rates</span>

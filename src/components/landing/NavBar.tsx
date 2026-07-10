@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Menu, X, Sun, Moon } from "lucide-react";
 import { useTheme } from "../../hooks/useTheme";
 import type { UserProfile } from "../../auth";
+import faviconUrl from "../../assets/favicon.svg";
 
 interface NavBarProps {
   user: UserProfile | null;
@@ -49,10 +50,10 @@ export default function NavBar({ user }: NavBarProps) {
         borderBottom: scrolled ? "1px solid var(--pb-rule)" : "1px solid transparent",
       }}
     >
-      <div className="pb-container pb-px">
+      <div className="pb-container pb-gutter">
         <div className="flex items-center justify-between h-16">
           <button onClick={() => navigate("/")} className="flex items-center gap-2.5">
-            <span className="pb-node" style={{ "--tick": "var(--pb-coral)" } as React.CSSProperties} />
+            <img src={faviconUrl} alt="ARC" className="w-8 h-8" />
             <span className="pb-display text-xl">ARC</span>
           </button>
 
@@ -119,7 +120,7 @@ export default function NavBar({ user }: NavBarProps) {
           borderTop: menuOpen ? "1px solid var(--pb-rule)" : "none",
         }}
       >
-        <div className="pb-px py-4 flex flex-col gap-1">
+        <div className="pb-gutter py-4 flex flex-col gap-1">
           {NAV_LINKS.map((link) => (
             <button
               key={link.href}

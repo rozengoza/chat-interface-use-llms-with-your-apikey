@@ -67,7 +67,7 @@ export default function ModelsShowcase() {
   const models = PROVIDERS[active].models;
 
   return (
-    <section id="models" className="pb-section pb-px" style={{ background: "var(--pb-surface)" }}>
+    <section id="models" className="pb-section pb-gutter" style={{ background: "var(--pb-surface)" }}>
       <div className="pb-container">
         <div ref={headerRef} className="reveal max-w-2xl mb-10">
           <span className="pb-label mb-4" style={{ "--tick": "var(--pb-coral)" } as React.CSSProperties}>Catalogue</span>
