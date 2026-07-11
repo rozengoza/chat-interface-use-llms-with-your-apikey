@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import ShatterEffect from "./ShatterEffect";
+import SlashTrail from "./SlashTrail";
 
 const STAR_SVG = (
   <svg viewBox="0 0 512 512" aria-hidden="true" className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
@@ -7,7 +8,7 @@ const STAR_SVG = (
   </svg>
 );
 
-/* ── Crisp, natural physics ── */
+/* ── Physics ── */
 const GRAVITY = 0.55;
 const FRICTION = 0.99;
 const SPIN_FRICTION = 0.998;
@@ -18,17 +19,18 @@ const FLICK_THRESHOLD = 4;
 
 interface Pos { x: number; y: number; }
 interface Shatter { id: number; x: number; y: number; wall: number; color: string; }
+interface Spray { id: number; x: number; y: number; dx: number; dy: number; color: string; }
+interface Trail { id: number; sx: number; sy: number; ex: number; ey: number; color: string; }
 
 export default function NinjaStar() {
-  /* ── Theme color ── */
+  /* ── Theme ── */
   const [color, setColor] = useState("#d1d5db");
   const colorRef = useRef("#d1d5db");
   useEffect(() => {
     const update = () => {
       const t = document.documentElement.getAttribute("data-theme");
       const c = t === "light" ? "#1e3a5f" : "#d1d5db";
-      setColor(c);
-      colorRef.current = c;
+      setColor(c); colorRef.current = c;
     };
     update();
     const obs = new MutationObserver(update);
@@ -36,8 +38,10 @@ export default function NinjaStar() {
     return () => obs.disconnect();
   }, []);
 
-  /* ── Shatter state ── */
+  /* ── Effects state ── */
   const [shatters, setShatters] = useState<Shatter[]>([]);
+  const [trails, setTrails] = useState<Trail[]>([]);
+  const [sprays, setSprays] = useState<Spray[]>([]);
   const sid = useRef(0);
 
   const spawnShatter = useCallback((x: number, y: number, wall: number) => {
@@ -46,8 +50,15 @@ export default function NinjaStar() {
     setTimeout(() => setShatters(prev => prev.filter(s => s.id !== id)), 3000);
   }, []);
 
+  const spawnSpray = useCallback((x: number, y: number, dx: number, dy: number) => {
+    const id = ++sid.current;
+    setSprays(prev => [...prev, { id, x, y, dx, dy, color: colorRef.current }]);
+    setTimeout(() => setSprays(prev => prev.filter(s => s.id !== id)), 700);
+  }, []);
+
   const el = useRef<HTMLDivElement>(null);
   const p = useRef<Pos>({ x: 0, y: 0 });
+  const prevPos = useRef<Pos>({ x: 0, y: 0 });
   const v = useRef<Pos>({ x: 0, y: 0 });
   const flick = useRef<Pos>({ x: 0, y: 0 });
   const ang = useRef(0);
@@ -83,12 +94,37 @@ export default function NinjaStar() {
       sync(); id.current = requestAnimationFrame(tick); return;
     }
 
+    // ── Fruit Ninja slash trail + spray ──
+    if (spd > 1.5) {
+      const trailId = ++sid.current;
+      setTrails(prev => [...prev, { id: trailId, sx: prevPos.current.x, sy: prevPos.current.y, ex: p.current.x, ey: p.current.y, color: colorRef.current }]);
+      setTimeout(() => setTrails(prev => prev.filter(t => t.id !== trailId)), 500);
+
+      // Spray perpendicular to movement
+      const len = Math.sqrt(v.current.x * v.current.x + v.current.y * v.current.y);
+      if (len > 2) {
+        const perpX = -v.current.y / len;
+        const perpY = v.current.x / len;
+        for (let i = 0; i < 2; i++) {
+          const spread = (Math.random() - 0.5) * 0.8;
+          spawnSpray(
+            p.current.x + (Math.random() - 0.5) * 8,
+            p.current.y + (Math.random() - 0.5) * 8,
+            perpX * (3 + Math.random() * 5) + spread,
+            perpY * (3 + Math.random() * 5) + spread - 1,
+          );
+        }
+      }
+    }
+
+    prevPos.current = { x: p.current.x, y: p.current.y };
+
     v.current.y += GRAVITY;
     v.current.x *= FRICTION;
     v.current.y *= FRICTION;
     angV.current *= SPIN_FRICTION;
 
-    // Wall/floor stick with shatter (crack centered at contact edge)
+    // Wall/floor stick with shatter
     if (p.current.x - HALF < 0) { p.current.x = HALF; v.current.x = 0; v.current.y = 0; angV.current = 0; rest.current = true; spawnShatter(0, p.current.y, 1); sync(); id.current = requestAnimationFrame(tick); return; }
     if (p.current.x + HALF > pw) { p.current.x = pw - HALF; v.current.x = 0; v.current.y = 0; angV.current = 0; rest.current = true; spawnShatter(pw, p.current.y, 0); sync(); id.current = requestAnimationFrame(tick); return; }
     if (p.current.y - HALF < 0) { p.current.y = HALF; v.current.x = 0; v.current.y = 0; angV.current = 0; rest.current = true; spawnShatter(p.current.x, 0, 3); sync(); id.current = requestAnimationFrame(tick); return; }
@@ -100,11 +136,12 @@ export default function NinjaStar() {
 
     sync();
     id.current = requestAnimationFrame(tick);
-  }, [sync, spawnShatter]);
+  }, [sync, spawnShatter, spawnSpray]);
 
   useEffect(() => {
     alive.current = true;
     p.current = { x: window.innerWidth - 120, y: window.innerHeight - 140 };
+    prevPos.current = { ...p.current };
     v.current = { x: 0, y: 0 }; angV.current = 0; rest.current = true;
     sync();
     id.current = requestAnimationFrame(tick);
@@ -122,12 +159,12 @@ export default function NinjaStar() {
     v.current = { x: 0, y: 0 }; flick.current = { x: 0, y: 0 }; angV.current = 0;
   }, []);
 
-  /* ── Drag (1:1) ── */
   const onMove = useCallback((e: React.PointerEvent) => {
     if (!drag.current) return;
     const nx = e.clientX - off.current.x + HALF;
     const ny = e.clientY - off.current.y + HALF;
     flick.current = { x: nx - p.current.x, y: ny - p.current.y };
+    prevPos.current = { x: p.current.x, y: p.current.y };
     p.current.x = nx; p.current.y = ny;
     const w = window.innerWidth, h = window.innerHeight;
     p.current.x = Math.max(HALF, Math.min(w - HALF, p.current.x));
@@ -135,7 +172,6 @@ export default function NinjaStar() {
     sync();
   }, [sync]);
 
-  /* ── Release ── */
   const onUp = useCallback(() => {
     drag.current = false;
     const fspd = Math.sqrt(flick.current.x * flick.current.x + flick.current.y * flick.current.y);
@@ -148,7 +184,6 @@ export default function NinjaStar() {
     }
   }, []);
 
-  /* ── Click (only from wall) ── */
   const onClick = useCallback(() => {
     if (drag.current || !rest.current) return;
     const pw = window.innerWidth, ph = window.innerHeight;
@@ -180,9 +215,46 @@ export default function NinjaStar() {
           {STAR_SVG}
         </div>
       </div>
+      {trails.map(t => (
+        <SlashTrail key={t.id} sx={t.sx} sy={t.sy} ex={t.ex} ey={t.ey} color={t.color} />
+      ))}
+      {sprays.map(s => (
+        <SprayBurst key={s.id} x={s.x} y={s.y} dx={s.dx} dy={s.dy} color={s.color} />
+      ))}
       {shatters.map(s => (
         <ShatterEffect key={s.id} x={s.x} y={s.y} wall={s.wall} color={s.color} />
       ))}
     </>
   );
+}
+
+/* ── Spray burst particle ── */
+function SprayBurst({ x, y, dx, dy, color }: { x: number; y: number; dx: number; dy: number; color: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const d = document.createElement("div");
+    const size = 2 + Math.random() * 3;
+    d.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${size}px;height:${size}px;background:${color};border-radius:50%;pointer-events:none;z-index:997;opacity:0.8;`;
+    document.body.appendChild(d);
+
+    const start = performance.now();
+    const dur = 500 + Math.random() * 200;
+    let animId: number;
+    const tick = () => {
+      const t = Math.min((performance.now() - start) / dur, 1);
+      const ease = 1 - Math.pow(1 - t, 1.5);
+      const px = dx * ease * 40;
+      const py = dy * ease * 40 + 0.5 * ease * ease * 80;
+      d.style.transform = `translate(${px}px,${py}px)`;
+      d.style.opacity = String(Math.max(0, 0.8 * (1 - t)));
+      if (t < 1) animId = requestAnimationFrame(tick);
+      else d.remove();
+    };
+    animId = requestAnimationFrame(tick);
+    return () => { cancelAnimationFrame(animId); d.remove(); };
+  }, [x, y, dx, dy]);
+
+  return null;
 }
