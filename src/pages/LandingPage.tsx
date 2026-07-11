@@ -9,6 +9,7 @@ import ModelsShowcase from "../components/landing/ModelsShowcase";
 import PricingComparison from "../components/landing/PricingComparison";
 import ClaudeCodeSection from "../components/landing/ClaudeCodeSection";
 import TransparencySection from "../components/landing/TransparencySection";
+import NinjaStar from "../components/landing/NinjaStar";
 import Footer from "../components/landing/Footer";
 
 interface LandingPageProps {
@@ -43,6 +44,7 @@ export default function LandingPage({ user }: LandingPageProps) {
         <TransparencySection />
       </main>
       <Footer />
+      <NinjaStar />
     </div>
   );
 }
