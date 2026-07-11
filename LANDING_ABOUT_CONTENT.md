@@ -20,7 +20,7 @@ token instead of a flat subscription, own your data.
 - Links: Features (`#features`), Models (`#models`), Pricing (`#pricing`),
   Claude Code (`#claude-code`) — all in-page anchors on the landing page — plus
   About (`/about`, a real route).
-- Right side: theme toggle (light/dark), GitHub icon link (`github.com/rozengoza`),
+- Right side: theme toggle (light/dark), GitHub icon link <!-- (`github.com/<!-- rozengoza -->`) -->,
   and an auth-aware CTA:
   - Logged in → single "Open Chat" primary button.
   - Logged out → "Sign in" text link + "Get Started" primary button.
@@ -30,17 +30,17 @@ token instead of a flat subscription, own your data.
 
 ### Footer (all pages)
 - Brand blurb: "A clean, self-hostable chat interface. Bring your own API key. Pay only
-  for what you use." + GitHub profile link (`rozengoza`).
+  for what you use." + GitHub profile link (`<!-- rozengoza -->`).
 - **Product** column: Features, Models, Pricing, Claude Code (anchors) + About.
 - **Resources** column:
-  - Frontend (ARC UI) → `github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey`
-  - Backend (API + DB) → `github.com/rozengoza/chat-interface-backend`
+  - Frontend (ARC UI) → `github.com/<!-- rozengoza -->/claude-chat-interface-make-chats-with-your-apikey`
+  - Backend (API + DB) → `github.com/<!-- rozengoza -->/chat-interface-backend`
   - Documentation → repo README on the `development` branch
   - Get an API Key → `console.anthropic.com`
   - DeepSeek API Keys → `platform.deepseek.com/api_keys`
 - **Legal** column: MIT License link + "Privacy-first: your keys never leave your
   browser" note.
-- Bottom bar: "Built with ♥ by rozengoza · Open Source · MIT Licensed".
+- Bottom bar: "Built with ♥ by <!-- rozengoza --> · Open Source · MIT Licensed".
 
 ---
 
@@ -64,7 +64,7 @@ Open & Transparent → Footer**.
 - Three CTAs, in priority order:
   1. Primary: "Open Chat" (logged in) / "Get Started Free" (logged out) →
      `/chat` or `/signup`.
-  2. Secondary: "View on GitHub" → `github.com/rozengoza` (external).
+  2. Secondary: "View on GitHub" → `github.com/<!-- rozengoza -->` (external).
   3. Tertiary/quiet: "About the API" → `/about`.
 - Scroll-down affordance at the bottom of the viewport ("Scroll" + chevron).
 
@@ -245,7 +245,7 @@ also powering their terminal workflow, not just the web chat.
   - Switch providers mid-conversation — no lock-in
 - Self-host CTA card: "Self-Host Your Own Instance" — "Express + PostgreSQL on Neon.
   Docker, Fly.io, Render, and Railway configs included." → button "Self-Host the
-  Backend" → `github.com/rozengoza/chat-interface-backend`.
+  Backend" → `github.com/<!-- rozengoza -->/chat-interface-backend`.
 
 ---
 
@@ -363,7 +363,7 @@ Flow → API Reference → Import, Export & Continue → Zero-Cost Deployment �
 - Self-host CTA card: "Self-Host Your Own Instance" — "The entire ARC backend is open
   source under MIT. Fork it, deploy it, own your data. Express + PostgreSQL on Neon.
   Docker, Fly.io, Render, and Railway configs included." → button "View on GitHub —
-  development" → `github.com/rozengoza/chat-interface-backend`.
+  development" → `github.com/<!-- rozengoza -->/chat-interface-backend`.
 
 ---
 

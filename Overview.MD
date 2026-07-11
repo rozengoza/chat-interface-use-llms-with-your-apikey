@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="https://raw.githubusercontent.com/rozengoza/chat-interface-backend/public/assets/arc-logo.svg" alt="ARC Logo" width="80" /><br/>
+  <!-- <img src="https://raw.githubusercontent.com/rozengoza/chat-interface-backend/public/assets/arc-logo.svg" alt="ARC Logo" width="80" /><br/> -->
   ARC Backend
 </h1>
 
@@ -10,9 +10,9 @@
 
 <p align="center">
   <a href="#local-dev"><img src="https://img.shields.io/badge/node-%3E%3D18-brightgreen?logo=node.js" alt="Node version"></a>
-  <a href="#api-reference"><img src="https://img.shields.io/badge/dynamic/json?color=blue&label=version&query=version&url=https%3A%2F%2Fraw.githubusercontent.com%2Frozengoza%2Farc-backend%2Fmain%2Fpackage.json" alt="Version"></a>
-  <a href="https://github.com/rozengoza/arc-backend/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
-  <a href="https://github.com/rozengoza/arc-backend/actions"><img src="https://img.shields.io/github/actions/workflow/status/rozengoza/arc-backend/ci.yml?branch=main" alt="CI status"></a>
+  <!-- <a href="#api-reference"><img src="https://img.shields.io/badge/dynamic/json?color=blue&label=version&query=version&url=https%3A%2F%2Fraw.githubusercontent.com%2Frozengoza%2Farc-backend%2Fmain%2Fpackage.json" alt="Version"></a> -->
+  <!-- <a href="https://github.com/rozengoza/arc-backend/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a> -->
+  <!-- <a href="https://github.com/rozengoza/arc-backend/actions"><img src="https://img.shields.io/github/actions/workflow/status/rozengoza/arc-backend/ci.yml?branch=main" alt="CI status"></a> -->
   <a href="https://fly.io/"><img src="https://img.shields.io/badge/deploy-Fly.io-purple?logo=flydotio" alt="Deploy on Fly.io"></a>
   <a href="https://render.com/"><img src="https://img.shields.io/badge/deploy-Render-46E3B7?logo=render" alt="Deploy on Render"></a>
   <a href="https://railway.app/"><img src="https://img.shields.io/badge/deploy-Railway-0B0D0E?logo=railway" alt="Deploy on Railway"></a>
@@ -22,7 +22,7 @@
 
 ## Why ARC Backend?
 
-The [ARC frontend](https://github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey) gives you a clean chat UI, but **conversation persistence, multi‑user support, and provider abstraction need a backend**. That’s where this API comes in.
+The ARC frontend <!-- (https://github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey) --> gives you a clean chat UI, but **conversation persistence, multi‑user support, and provider abstraction need a backend**. That’s where this API comes in.
 
 ARC Backend is the fast, stateless Node.js server that:
 - **Persists your chats** in a Neon PostgreSQL database, so you never lose context.
@@ -149,7 +149,7 @@ stateDiagram-v2
 ---
 
 #### 1. Clone and install
-git clone https://github.com/rozengoza/chat-interface-backend.git
+git clone <!-- https://github.com/rozengoza/chat-interface-backend.git --> your-fork-url
 cd chat-interface-backend
 npm install
 
@@ -261,18 +261,18 @@ SSE is simpler, works over HTTP/1.1 and HTTP/2, and is perfect for one‑way str
 4. **Run** the migration if you add new tables: `node src/db/migrate.js`.
 5. **Submit** a Pull Request with a clear description.
 
-Check the [open issues](https://github.com/rozengoza/chat-interface-backend/issues) for ways to help.
+Check the <!-- [open issues](https://github.com/rozengoza/chat-interface-backend/issues) --> project issues for ways to help.
 
 ---
 
 ## License
 
-[MIT](https://github.com/rozengoza/chat-interface-backend/blob/main/LICENSE) — see `LICENSE` for details.
+<!-- [MIT](https://github.com/rozengoza/chat-interface-backend/blob/main/LICENSE) --> MIT — see `LICENSE` for details.
 
 ---
 
 <p align="center">
-  <sub>By <a href="https://github.com/rozengoza">rozengoza</a> · Deployed on <a href="https://railway.app/">Railway</a> for zero‑cost global latency.</sub>
+  <!-- <sub>By <a href="https://github.com/rozengoza">rozengoza</a> · Deployed on <a href="https://railway.app/">Railway</a> for zero‑cost global latency.</sub> -->
 </p>
 
 

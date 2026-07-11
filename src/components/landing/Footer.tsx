@@ -11,9 +11,9 @@ const PRODUCT_LINKS = [
   { label: "About", href: "/about" },
 ];
 const RESOURCE_LINKS = [
-  { label: "Frontend", href: "https://github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey" },
-  { label: "Backend", href: "https://github.com/rozengoza/chat-interface-backend" },
-  { label: "Docs", href: "https://github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey/blob/development/README.md" },
+  // { label: "Frontend", href: "https://github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey" },
+  // { label: "Backend", href: "https://github.com/rozengoza/chat-interface-backend" },
+  // { label: "Docs", href: "https://github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey/blob/development/README.md" },
   { label: "Anthropic keys", href: "https://console.anthropic.com/" },
   { label: "DeepSeek keys", href: "https://platform.deepseek.com/api_keys" },
 ];
@@ -31,10 +31,10 @@ export default function Footer() {
             <p className="text-sm leading-relaxed mt-4 mb-4" style={{ color: "var(--pb-text-dim)" }}>
               A self-hostable chat interface. Bring your own API key. Pay only for what you use.
             </p>
-            <a href="https://github.com/rozengoza" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium" style={{ color: "var(--pb-coral)" }}>
+            {/* <a href="https://github.com/rozengoza" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium" style={{ color: "var(--pb-coral)" }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d={GITHUB_ICON_PATH} /></svg>
               rozengoza
-            </a>
+            </a> */}
           </div>
 
           <div>
@@ -59,9 +59,9 @@ export default function Footer() {
             <h4 className="pb-mono text-xs uppercase tracking-widest mb-4" style={{ color: "var(--pb-text)" }}>Legal</h4>
             <ul className="space-y-2.5">
               <li>
-                <a href="https://github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey/blob/development/LICENSE" target="_blank" rel="noopener noreferrer" className="text-sm" style={{ color: "var(--pb-text-dim)" }}>
+                {/* <a href="https://github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey/blob/development/LICENSE" target="_blank" rel="noopener noreferrer" className="text-sm" style={{ color: "var(--pb-text-dim)" }}>
                   MIT License
-                </a>
+                </a> */}
               </li>
               <li><span className="text-sm" style={{ color: "var(--pb-text-dim)" }}>Keys never leave your browser</span></li>
             </ul>

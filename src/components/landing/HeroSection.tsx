@@ -76,9 +76,9 @@ export default function HeroSection({ user }: HeroSectionProps) {
               <button onClick={() => navigate(user ? "/chat" : "/signup")} className="pb-btn pb-btn--primary">
                 {user ? "Open chat" : "Get started, free"}
               </button>
-              <a href="https://github.com/rozengoza" target="_blank" rel="noopener noreferrer" className="pb-btn pb-btn--secondary">
+              {/* <a href="https://github.com/rozengoza" target="_blank" rel="noopener noreferrer" className="pb-btn pb-btn--secondary">
                 View source
-              </a>
+              </a> */}
             </div>
           </div>
 

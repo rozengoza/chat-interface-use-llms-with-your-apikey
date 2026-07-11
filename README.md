@@ -81,7 +81,7 @@ This means:
 
 ```bash
 # 1. Fork the repository on GitHub
-# Visit: https://github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey
+# Visit: <!-- https://github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey -->
 # Click "Fork" in the top-right corner
 
 # 2. Clone your fork locally
@@ -101,7 +101,7 @@ npm run dev
 
 The easiest way to deploy your own instance:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey.git)
+<!-- [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/rozengoza/claude-chat-interface-make-chats-with-your-apikey.git) -->
 
 1. **Fork this repository** on GitHub (top-right corner)
 2. Import your fork into [Vercel](https://vercel.com/)

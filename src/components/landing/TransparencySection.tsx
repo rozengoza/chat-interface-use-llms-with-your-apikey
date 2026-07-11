@@ -56,10 +56,10 @@ export default function TransparencySection() {
             <p className="text-xs mb-5 leading-relaxed" style={{ color: "var(--pb-text-dim)" }}>
               Express + PostgreSQL on Neon. Docker, Fly.io, Render, and Railway configs included.
             </p>
-            <a href="https://github.com/rozengoza/chat-interface-backend" target="_blank" rel="noopener noreferrer" className="pb-btn pb-btn--primary !py-2.5 !px-4 text-xs">
+            {/* <a href="https://github.com/rozengoza/chat-interface-backend" target="_blank" rel="noopener noreferrer" className="pb-btn pb-btn--primary !py-2.5 !px-4 text-xs">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d={GITHUB_ICON_PATH} /></svg>
               Self-host the backend
-            </a>
+            </a> */}
           </div>
         </div>
       </div>
