@@ -1,4 +1,3 @@
-import { ArrowRight, CircleX } from "lucide-react";
 import { useReveal } from "../../hooks/useReveal";
 
 const SIGNAL_COLORS = ["var(--pb-coral)", "var(--pb-teal)", "var(--pb-amber)"];
@@ -61,7 +60,7 @@ export default function FeaturesSection() {
         <div ref={verdictRef} className="reveal mt-16 grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <h3 className="pb-mono text-xs uppercase tracking-widest mb-4 flex items-center gap-2" style={{ color: "var(--pb-teal)" }}>
-              <ArrowRight size={13} /> Built for
+              <span className="pb-node" style={{ "--tick": "var(--pb-teal)" } as React.CSSProperties} /> Built for
             </h3>
             <ul className="space-y-3">
               {FOR_YOU.map((item) => (
@@ -73,7 +72,7 @@ export default function FeaturesSection() {
           </div>
           <div>
             <h3 className="pb-mono text-xs uppercase tracking-widest mb-4 flex items-center gap-2" style={{ color: "var(--pb-coral)" }}>
-              <CircleX size={13} /> Not built for
+              <span className="pb-node" style={{ "--tick": "var(--pb-coral)" } as React.CSSProperties} /> Not built for
             </h3>
             <ul className="space-y-3">
               {NOT_FOR_YOU.map((item) => (

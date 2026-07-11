@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { Check } from "lucide-react";
 import { useReveal } from "../../hooks/useReveal";
 
 const TERMINAL_LINES = [
@@ -55,7 +54,6 @@ function TerminalMockup() {
       <div className="p-4 pb-mono text-[13px] leading-relaxed overflow-x-auto">
         {TERMINAL_LINES.slice(0, visible).map((line, i) => (
           <div key={i} style={{ minHeight: line.text ? "1.7em" : "0.7em", color: line.text.startsWith("✓") ? "var(--pb-teal)" : line.text.startsWith(">") ? "var(--pb-coral)" : "var(--pb-text-dim)" }}>
-            {line.text.startsWith("✓") ? <Check size={12} className="inline mr-1" style={{ marginBottom: 2 }} /> : null}
             {line.text}
           </div>
         ))}

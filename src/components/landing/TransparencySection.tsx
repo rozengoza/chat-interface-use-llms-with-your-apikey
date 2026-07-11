@@ -1,4 +1,3 @@
-import { Check } from "lucide-react";
 import { useReveal } from "../../hooks/useReveal";
 
 const STATS = [
@@ -47,7 +46,7 @@ export default function TransparencySection() {
           <div className="space-y-3">
             {DIFFERENTIATORS.map((item) => (
               <div key={item} className="flex items-center gap-2.5 text-sm" style={{ color: "var(--pb-text-dim)" }}>
-                <Check size={14} style={{ color: "var(--pb-teal)", flexShrink: 0 }} />
+                <span className="pb-node" style={{ "--tick": "var(--pb-teal)" } as React.CSSProperties} />
                 {item}
               </div>
             ))}

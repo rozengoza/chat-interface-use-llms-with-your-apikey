@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
 import { useReveal } from "../../hooks/useReveal";
 import type { UserProfile } from "../../auth";
 
@@ -74,9 +73,8 @@ export default function HeroSection({ user }: HeroSectionProps) {
               billed by the token, from your browser.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-4">
-              <button onClick={() => navigate(user ? "/chat" : "/signup")} className="pb-btn pb-btn--primary group">
+              <button onClick={() => navigate(user ? "/chat" : "/signup")} className="pb-btn pb-btn--primary">
                 {user ? "Open chat" : "Get started, free"}
-                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </button>
               <a href="https://github.com/rozengoza" target="_blank" rel="noopener noreferrer" className="pb-btn pb-btn--secondary">
                 View source
