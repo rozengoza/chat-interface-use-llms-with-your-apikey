@@ -83,7 +83,7 @@ export default function NavBar({ user }: NavBarProps) {
             </button>
             {user ? (
               <button onClick={() => navigate("/chat")} className="pb-btn pb-btn--primary !py-2 !px-4 text-xs">
-                Open chat
+                Chat
               </button>
             ) : (
               <>
@@ -142,7 +142,7 @@ export default function NavBar({ user }: NavBarProps) {
           <div className="pb-rule my-2" />
           {user ? (
             <button onClick={() => { setMenuOpen(false); navigate("/chat"); }} className="pb-btn pb-btn--primary w-full">
-              Open chat
+              Chat
             </button>
           ) : (
             <div className="flex gap-2">

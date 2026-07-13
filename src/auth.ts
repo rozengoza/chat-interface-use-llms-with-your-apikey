@@ -4,12 +4,12 @@
  * WHAT CHANGED FROM THE OLD VERSION:
  *   - No more PBKDF2 / localStorage password hashing
  *   - register/login hit POST /auth/register and POST /auth/login
- *   - JWT is stored in sessionStorage (cleared on tab close, same as before)
+ *   - JWT is stored in localStorage (persists across browser restarts)
  *   - UserProfile shape is mostly the same so LoginPage.tsx needs no changes
  *
  * WHAT STAYS THE SAME:
- *   - Session cleared on tab close (sessionStorage)
- *   - logout() clears sessionStorage
+ *   - Session persists across browser restarts (localStorage)
+ *   - logout() clears localStorage
  *   - getActiveSession() returns { session, user } or null
  */
 
@@ -117,7 +117,7 @@ export async function registerUser(
   };
 
   const session: Session = { userId: profile.id, token: data.token, loginAt: Date.now() };
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
   rememberUser(profile);
 
   return profile;
@@ -150,7 +150,7 @@ export async function loginUser(username: string, password: string): Promise<Use
   };
 
   const session: Session = { userId: profile.id, token: data.token, loginAt: Date.now() };
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
   rememberUser(profile);
 
   return profile;
@@ -161,7 +161,7 @@ export async function loginUser(username: string, password: string): Promise<Use
 // ---------------------------------------------------------------------------
 export function getActiveSession(): { session: Session; user: UserProfile } | null {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
+    const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const session = JSON.parse(raw) as Session;
 
@@ -171,7 +171,7 @@ export function getActiveSession(): { session: Session; user: UserProfile } | nu
 
     // Check expiry
     if (payload.exp && Date.now() / 1000 > payload.exp) {
-      sessionStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem(SESSION_KEY);
       return null;
     }
 
@@ -191,7 +191,7 @@ export function getActiveSession(): { session: Session; user: UserProfile } | nu
 
 export function getToken(): string | null {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
+    const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const session = JSON.parse(raw) as Session;
     return session.token;
@@ -201,7 +201,7 @@ export function getToken(): string | null {
 }
 
 export function logout(): void {
-  sessionStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(SESSION_KEY);
 }
 
 // ---------------------------------------------------------------------------
