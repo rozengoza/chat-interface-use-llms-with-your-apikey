@@ -555,6 +555,16 @@ input:focus-visible
     display: flex !important;
   }
 
+  /* Show sidebar toggle in header on mobile */
+  .nav-mobile-sidebar {
+    display: flex !important;
+  }
+
+  /* Hide chat title on mobile to save space */
+  .chat-title {
+    display: none;
+  }
+
   /* Sidebar: completely hidden on mobile by default; shown as fixed overlay when toggled */
   .sidebar {
     display: none !important;
@@ -572,7 +582,21 @@ input:focus-visible
 
   /* Hide chat message avatars on mobile to save width */
   .msg-avatar {
-    display: none;
+    display: none !important;
+  }
+
+  /* Break long code lines on mobile — wrap instead of horizontal scroll */
+  .md pre {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+  .md pre code {
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  .md .code-block {
+    max-width: 100%;
   }
 }
 

@@ -1870,7 +1870,18 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
         <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px", height: 54, borderBottom: "1px solid var(--border)", background: "var(--surface)", flexShrink: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-            <span style={{ fontSize: 14, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 340 }}>
+            <button
+              className="nav-mobile-sidebar"
+              onClick={() => setSidebarCollapsed(false)}
+              title="Open conversations"
+              aria-label="Open sidebar"
+              style={{ display: "none", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 7, border: "1px solid var(--border)", color: "var(--text-muted)", flexShrink: 0, transition: "background 0.15s, color 0.15s" }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface2)"; e.currentTarget.style.color = "var(--text)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}
+            >
+              <PanelLeftOpen size={18} />
+            </button>
+            <span className="chat-title" style={{ fontSize: 14, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 340 }}>
               {activeConv?.title ?? "ARC"}
             </span>
 
@@ -1947,29 +1958,18 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
             </button>
           </div>
 
-          {/* ── Mobile sidebar + hamburger (hidden on desktop) ── */}
-          <div className="nav-mobile-btn" style={{ display: "none", alignItems: "center", gap: 6, flexShrink: 0 }}>
-            <button
-              onClick={() => setSidebarCollapsed(false)}
-              title="Open conversations"
-              aria-label="Open sidebar"
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 7, border: "1px solid var(--border)", color: "var(--text-muted)", transition: "background 0.15s, color 0.15s" }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface2)"; e.currentTarget.style.color = "var(--text)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}
-            >
-              <PanelLeftOpen size={18} />
-            </button>
-            <button
-              onClick={() => setMobileMenuOpen((v) => !v)}
-              title="Menu"
-              aria-label="Open menu"
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 7, border: "1px solid var(--border)", color: "var(--text-muted)", transition: "background 0.15s, color 0.15s" }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface2)"; e.currentTarget.style.color = "var(--text)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}
-            >
-              {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
-          </div>
+          {/* ── Mobile hamburger (hidden on desktop) ── */}
+          <button
+            className="nav-mobile-btn"
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            title="Menu"
+            aria-label="Open menu"
+            style={{ display: "none", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 7, border: "1px solid var(--border)", color: "var(--text-muted)", flexShrink: 0, transition: "background 0.15s, color 0.15s" }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface2)"; e.currentTarget.style.color = "var(--text)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}
+          >
+            {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
         </header>
 
         {/* ── Mobile menu popup ── */}
