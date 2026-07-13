@@ -248,6 +248,38 @@ function TokenRow({ msg }: { msg: Message }) {
   );
 }
 
+// Short display name for a model ID — e.g. "claude-sonnet-4-6" → "Sonnet 4.6"
+function shortModelName(modelId: string): string {
+  const known: Record<string, string> = {
+    "gemini-2.0-flash": "Flash",
+    "gemini-1.5-flash": "Flash",
+    "claude-sonnet-4-6": "Sonnet 4.6",
+    "claude-sonnet-4": "Sonnet 4",
+    "claude-sonnet-5": "Sonnet 5",
+    "claude-haiku-4-5-20251001": "Haiku 4.5",
+    "claude-haiku-4-5": "Haiku 4.5",
+    "claude-opus-4-8": "Opus 4.8",
+    "claude-opus-4-5": "Opus 4.5",
+    "gpt-4o": "GPT-4o",
+    "gpt-4o-mini": "GPT-4o Mini",
+    "gpt-4-turbo": "GPT-4 Turbo",
+    "deepseek-chat": "DeepSeek",
+    "deepseek-reasoner": "DeepSeek R1",
+    "llama-3.3-70b": "Llama 3.3",
+    "mistral-large": "Mistral",
+    "mistral-small": "Mistral",
+    "grok-2": "Grok 2",
+  };
+  if (known[modelId]) return known[modelId];
+  // Fallback: strip prefix / date stamp / OpenRouter namespace
+  return modelId
+    .split("/").pop()!
+    .replace(/^[a-zA-Z]+-/, "")
+    .replace(/-\d{8,}$/, "")
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 function inferFilename(block: HTMLElement, lang: string): string {
   const ext = LANG_EXT[lang] ?? lang;
   const rawCode = block.querySelector("code")?.textContent ?? "";
@@ -304,6 +336,7 @@ function handleCodeCopy(e: React.MouseEvent<HTMLDivElement>) {
 const MessageBubble = memo(function MessageBubble({
   msg, isStreaming, onEdit, onRegenerate,
   isEditing, editText, onEditChange, onEditSave, onEditCancel, onCodePreview,
+  modelName,
 }: {
   msg: Message;
   isStreaming?: boolean;
@@ -315,6 +348,7 @@ const MessageBubble = memo(function MessageBubble({
   onEditSave?: () => void;
   onEditCancel?: () => void;
   onCodePreview?: (code: string, lang: string, filename: string) => void;
+  modelName?: string;
 }) {
   const isUser = msg.role === "user";
   const editRef = useRef<HTMLTextAreaElement>(null);
@@ -352,7 +386,7 @@ const MessageBubble = memo(function MessageBubble({
       borderBottom: "1px solid var(--border)",
       position: "relative",
     }}>
-      <div style={{
+      <div className="msg-avatar" style={{
         width: 34, height: 34,
         borderRadius: isUser ? 8 : 10,
         background: isUser ? "var(--surface2)" : "var(--accent-dim)",
@@ -369,7 +403,7 @@ const MessageBubble = memo(function MessageBubble({
       <div style={{ flex: 1, minWidth: 0, paddingTop: 4 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
           <span style={{ fontSize: 13, fontWeight: 600, color: isUser ? "var(--text-muted)" : "var(--text)" }}>
-            {isUser ? "You" : "Claude"}
+            {isUser ? "You" : (modelName ?? "Claude")}
           </span>
           <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: "var(--text-dim)" }}>
             {fmtTime(msg.timestamp)}
@@ -547,7 +581,7 @@ const MessageBubble = memo(function MessageBubble({
 function Thinking() {
   return (
     <div style={{ display: "flex", gap: 14, padding: "22px 0", borderBottom: "1px solid var(--border)" }}>
-      <div style={{
+      <div className="msg-avatar" style={{
         width: 34, height: 34, borderRadius: 10,
         background: "var(--accent-dim)", border: "1.5px solid var(--accent)",
         display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
@@ -1913,18 +1947,29 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
             </button>
           </div>
 
-          {/* ── Mobile hamburger (hidden on desktop) ── */}
-          <button
-            className="nav-mobile-btn"
-            onClick={() => setMobileMenuOpen((v) => !v)}
-            title="Menu"
-            aria-label="Open menu"
-            style={{ display: "none", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 7, border: "1px solid var(--border)", color: "var(--text-muted)", flexShrink: 0, transition: "background 0.15s, color 0.15s" }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface2)"; e.currentTarget.style.color = "var(--text)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}
-          >
-            {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
-          </button>
+          {/* ── Mobile sidebar + hamburger (hidden on desktop) ── */}
+          <div className="nav-mobile-btn" style={{ display: "none", alignItems: "center", gap: 6, flexShrink: 0 }}>
+            <button
+              onClick={() => setSidebarCollapsed(false)}
+              title="Open conversations"
+              aria-label="Open sidebar"
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 7, border: "1px solid var(--border)", color: "var(--text-muted)", transition: "background 0.15s, color 0.15s" }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface2)"; e.currentTarget.style.color = "var(--text)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}
+            >
+              <PanelLeftOpen size={18} />
+            </button>
+            <button
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              title="Menu"
+              aria-label="Open menu"
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 7, border: "1px solid var(--border)", color: "var(--text-muted)", transition: "background 0.15s, color 0.15s" }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface2)"; e.currentTarget.style.color = "var(--text)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}
+            >
+              {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+          </div>
         </header>
 
         {/* ── Mobile menu popup ── */}
@@ -2035,6 +2080,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
                   onEditSave={() => void handleEditSave()}
                   onEditCancel={handleEditCancel}
                   onCodePreview={(code, lang, filename) => setPreviewCode({ code, lang, filename })}
+                  modelName={shortModelName(model)}
                 />
               ))}
               {thinking && <Thinking />}

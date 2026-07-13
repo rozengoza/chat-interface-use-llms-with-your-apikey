@@ -555,8 +555,12 @@ input:focus-visible
     display: flex !important;
   }
 
-  /* Sidebar: overlay on top of chat panel instead of squeezing it */
+  /* Sidebar: completely hidden on mobile by default; shown as fixed overlay when toggled */
+  .sidebar {
+    display: none !important;
+  }
   .sidebar:not(.sidebar--collapsed) {
+    display: flex !important;
     position: fixed !important;
     top: 0;
     left: 0;
@@ -564,6 +568,11 @@ input:focus-visible
     width: 240px !important;
     min-width: 240px !important;
     box-shadow: var(--shadow-lg);
+  }
+
+  /* Hide chat message avatars on mobile to save width */
+  .msg-avatar {
+    display: none;
   }
 }
 
