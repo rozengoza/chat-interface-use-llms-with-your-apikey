@@ -585,6 +585,15 @@ input:focus-visible
     display: none !important;
   }
 
+  /* Compact input on mobile */
+  .shiny-input-wrap {
+    border-radius: 10px;
+  }
+  .shiny-input-wrap .shiny-inner {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
   /* Break long code lines on mobile — wrap instead of horizontal scroll */
   .md pre {
     overflow-x: auto;
@@ -605,6 +614,57 @@ input:focus-visible
   flex: 1 1 0px;
   overflow: auto;
   min-height: 0;
+}
+
+/* ── Shiny flowing border for chat input ── */
+.shiny-input-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  isolation: isolate;
+}
+
+.shiny-input-wrap .shiny-orb {
+  position: absolute;
+  top: -100%;
+  left: -100%;
+  width: 300%;
+  height: 300%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 15%,
+    transparent 25%,
+    var(--accent) 30%,
+    var(--accent-warm) 35%,
+    var(--accent) 40%,
+    transparent 50%,
+    transparent 65%,
+    var(--accent) 72%,
+    var(--accent-warm) 78%,
+    var(--accent) 83%,
+    transparent 92%
+  );
+  animation: rotate-shine 4s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.shiny-input-wrap .shiny-inner {
+  position: relative;
+  z-index: 1;
+  margin: 1.5px;
+  border-radius: 10.5px;
+  background: transparent;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  padding: 10px 12px;
+}
+
+@keyframes rotate-shine {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Sidebar mobile overlay backdrop ── */

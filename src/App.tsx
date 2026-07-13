@@ -1285,33 +1285,19 @@ const ChatInput = memo(function ChatInput({
   input, setInput, attachments, handleRemoveAttachment,
   streaming, handleSend, handleStop, handleKeyDown,
   handleFileSelect, fileInputRef, textareaRef,
-  provider, model,
-}: ChatInputProps & { provider: string; model: string }) {
+}: ChatInputProps) {
   return (
     <div
-      className="chat-input-area"
       style={{
-        padding: "12px 24px 20px",
         flexShrink: 0,
-        background: "var(--bg)",
-        borderTop: "1px solid var(--border)",
-        position: "relative",
-        zIndex: 5,
+        padding: "4px 8px 8px",
       }}
     >
-      <div style={{ maxWidth: 760, margin: "0 auto" }}>
-        <div
-          style={{
-            background: "var(--surface)",
-            border: "1.5px solid var(--border2)",
-            borderRadius: 12,
-            boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
-          }}
-          onFocusCapture={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
-          onBlurCapture={(e) => (e.currentTarget.style.borderColor = "var(--border2)")}
-        >
+      <div className="shiny-input-wrap">
+        <div className="shiny-orb" />
+        <div className="shiny-inner">
           {attachments.length > 0 && (
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", padding: "10px 12px 0" }}>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", padding: "2px 0 6px 0", width: "100%", alignSelf: "flex-start" }}>
               {attachments.map((att) => (
                 <span key={att.id} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, background: "var(--surface2)", border: "1px solid var(--border)", padding: "3px 8px 3px 10px", borderRadius: 6, color: "var(--text-muted)", fontFamily: "'JetBrains Mono', monospace" }}>
                   {att.type === "image" ? "🖼" : "📎"} {att.name}
@@ -1322,26 +1308,14 @@ const ChatInput = memo(function ChatInput({
               ))}
             </div>
           )}
-          <div style={{ display: "flex", gap: 10, alignItems: "flex-end", padding: "10px 12px" }}>
-            <input ref={fileInputRef} type="file" multiple onChange={handleFileSelect} style={{ display: "none" }} accept="image/*,.txt,.md,.py,.js,.ts,.tsx,.jsx,.json,.css,.html,.yml,.yaml,.xml,.csv,.sql,.sh,.rs,.go,.java,.c,.cpp,.h,.rb,.php,.swift,.kt,.r,.lua,.pl,.ex,.exs,.hs,.scala,.dart,.vue,.svelte,.toml,.ini,.cfg,.env,.log" />
-            <button onClick={() => fileInputRef.current?.click()} title="Attach files (max 2 MB each)" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: 8, flexShrink: 0, color: "var(--text-dim)", transition: "color 0.15s, background 0.15s" }} onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text)"; e.currentTarget.style.background = "var(--surface2)"; }} onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-dim)"; e.currentTarget.style.background = "transparent"; }}>
-              <Paperclip size={16} />
-            </button>
-            <textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder={streaming ? "Responding…" : "Message  (Enter ↵ to send, Shift+Enter for newline)"} disabled={streaming} rows={1} style={{ flex: 1, minHeight: 26, maxHeight: 160, overflow: "auto" }} />
-            <button onClick={streaming ? handleStop : () => void handleSend()} disabled={!streaming && !input.trim() && attachments.length === 0} style={{ width: 36, height: 36, borderRadius: 8, background: streaming ? "rgba(248,81,73,0.15)" : "var(--accent)", border: streaming ? "1px solid var(--red)" : "none", color: streaming ? "var(--red)" : "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, opacity: !streaming && !input.trim() && attachments.length === 0 ? 0.35 : 1, transition: "opacity 0.15s, background 0.15s" }}>
-              {streaming ? <Square size={14} fill="var(--red)" /> : <Send size={15} />}
-            </button>
-          </div>
-        </div>
-
-        {/* ── AdSense banner (below input, above status) ── */}
-        <div style={{ maxWidth: 760, margin: "8px auto 0" }}>
-          <AdUnit slot={import.meta.env.VITE_ADSENSE_AD_SLOT_BANNER || "0000000000"} format="horizontal" />
-        </div>
-
-        {/* ── Status bar ── */}
-        <div style={{ textAlign: "center", marginTop: 7, fontSize: 11.5, fontFamily: "'JetBrains Mono', monospace", color: "var(--text-dim)" }}>
-          {provider && model ? `${provider} · ${model}` : ""}
+          <input ref={fileInputRef} type="file" multiple onChange={handleFileSelect} style={{ display: "none" }} accept="image/*,.txt,.md,.py,.js,.ts,.tsx,.jsx,.json,.css,.html,.yml,.yaml,.xml,.csv,.sql,.sh,.rs,.go,.java,.c,.cpp,.h,.rb,.php,.swift,.kt,.r,.lua,.pl,.ex,.exs,.hs,.scala,.dart,.vue,.svelte,.toml,.ini,.cfg,.env,.log" />
+          <button onClick={() => fileInputRef.current?.click()} title="Attach files (max 2 MB each)" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: 8, flexShrink: 0, color: "var(--text-dim)", transition: "color 0.15s, background 0.15s" }} onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text)"; e.currentTarget.style.background = "var(--surface2)"; }} onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-dim)"; e.currentTarget.style.background = "transparent"; }}>
+            <Paperclip size={16} />
+          </button>
+          <textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder={streaming ? "Responding…" : "Message  (Enter ↵ to send, Shift+Enter for newline)"} disabled={streaming} rows={1} style={{ flex: 1, minHeight: 26, maxHeight: 160, overflow: "auto" }} />
+          <button onClick={streaming ? handleStop : () => void handleSend()} disabled={!streaming && !input.trim() && attachments.length === 0} style={{ width: 36, height: 36, borderRadius: 8, background: streaming ? "rgba(248,81,73,0.15)" : "var(--accent)", border: streaming ? "1px solid var(--red)" : "none", color: streaming ? "var(--red)" : "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, opacity: !streaming && !input.trim() && attachments.length === 0 ? 0.35 : 1, transition: "opacity 0.15s, background 0.15s" }}>
+            {streaming ? <Square size={14} fill="var(--red)" /> : <Send size={15} />}
+          </button>
         </div>
       </div>
     </div>
@@ -2215,8 +2189,6 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
           handleFileSelect={handleFileSelect}
           fileInputRef={fileInputRef}
           textareaRef={textareaRef}
-          provider={provider}
-          model={model}
         />
       </div>
 
