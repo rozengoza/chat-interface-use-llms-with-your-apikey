@@ -1960,7 +1960,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
       />
       {/* ── Sidebar mobile overlay (closes sidebar when tapped outside) ── */}
       <div className="sidebar-mobile-overlay" onClick={() => setSidebarCollapsed(true)} />
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0, minHeight: 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, height: "100vh", overflow: "hidden" }}>
         <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px", height: 54, borderBottom: "1px solid var(--border)", background: "var(--surface)", flexShrink: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
             <button
@@ -2131,7 +2131,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
           </div>
         )}
 
-        <div ref={scrollContainerRef} onScroll={handleScroll} style={{ flex: 1, overflowY: "auto", position: "relative", minHeight: 0 }}>
+        <div ref={scrollContainerRef} onScroll={handleScroll} className="chat-scroll">
           {loadingSessionId === activeId ? (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", gap: 6, color: "var(--text-dim)", fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }}>
               <span className="dot" /><span className="dot" /><span className="dot" />
