@@ -40,7 +40,7 @@ export default function LandingPage({ user }: LandingPageProps) {
         <HeroSection user={user} />
         <FeaturesSection />
         <div className="landing-ad" style={{ maxWidth: 728, margin: "0 auto", padding: "8px 16px" }}>
-          <AdUnit slot={import.meta.env.VITE_ADSENSE_AD_SLOT_BANNER || "0000000000"} format="horizontal" />
+          {import.meta.env.VITE_ADSENSE_AD_SLOT_BANNER && <AdUnit slot={import.meta.env.VITE_ADSENSE_AD_SLOT_BANNER} format="horizontal" />}
         </div>
         <HowItWorksSection />
         <ModelsShowcase />
