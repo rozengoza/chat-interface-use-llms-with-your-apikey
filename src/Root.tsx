@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import App from "./App.tsx";
 import LoginPage from "./LoginPage.tsx";
@@ -17,6 +17,17 @@ export default function Root() {
     const s = getActiveSession();
     return s ? s.user : null;
   });
+
+  // Ping Render backend every 5 min to keep free tier from spinning down
+  // (lives in Root so it runs on every page, not only /chat)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetch("https://arc-backend.onrender.com/ping").catch(() => {
+        // Server may be cold-spinning — that's normal, ignore
+      });
+    }, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <Routes>

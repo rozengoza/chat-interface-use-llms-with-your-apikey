@@ -1452,16 +1452,6 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
     localStorage.setItem("arc_theme", theme);
   }, [theme]);
 
-  // Ping Render backend every 5 min to keep free tier from spinning down
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetch("https://arc-backend.onrender.com/ping").catch(() => {
-        // Server may be cold-spinning — that's normal, ignore
-      });
-    }, 5 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   // saveSessions is now a no-op (backend handles persistence) but kept for compat
   useEffect(() => { saveSessions(user.id, sessions); }, [sessions, user.id]);
 
