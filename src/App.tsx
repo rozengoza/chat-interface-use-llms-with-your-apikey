@@ -66,6 +66,7 @@ import { streamChat, MODELS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "./api";
 import faviconUrl from "./assets/favicon.svg";
 import "./index.css";
 import gsap from "gsap";
+import { AdSenseScript, AdUnit } from "./components/AdSense";
 
 marked.setOptions({
   breaks: true,
@@ -1853,6 +1854,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
+      <AdSenseScript />
       <Sidebar
         sessions={sessions}
         activeId={activeId}
@@ -2067,22 +2069,37 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
             </div>
           ) : (
             <div style={{ maxWidth: 760, margin: "0 auto", padding: "4px 24px 0" }}>
-              {activeConv!.messages.map((msg) => (
-                <MessageBubble
-                  key={msg.id}
-                  msg={msg}
-                  isStreaming={msg.id === streamingMsgId}
-                  onEdit={msg.role === "user" && msg.id !== streamingMsgId ? () => handleStartEdit(msg.id) : undefined}
-                  onRegenerate={msg.role === "assistant" && msg.id !== streamingMsgId ? () => void handleRegenerate(msg.id) : undefined}
-                  isEditing={editingMsgId === msg.id}
-                  editText={editingMsgId === msg.id ? editText : undefined}
-                  onEditChange={setEditText}
-                  onEditSave={() => void handleEditSave()}
-                  onEditCancel={handleEditCancel}
-                  onCodePreview={(code, lang, filename) => setPreviewCode({ code, lang, filename })}
-                  modelName={shortModelName(model)}
-                />
-              ))}
+              {activeConv!.messages.flatMap((msg, idx) => {
+                const showAd =
+                  idx > 0 &&
+                  idx % 5 === 0 &&
+                  !streaming &&
+                  msg.role === "assistant" &&
+                  import.meta.env.VITE_ADSENSE_AD_SLOT_INFEED;
+                return [
+                  <MessageBubble
+                    key={msg.id}
+                    msg={msg}
+                    isStreaming={msg.id === streamingMsgId}
+                    onEdit={msg.role === "user" && msg.id !== streamingMsgId ? () => handleStartEdit(msg.id) : undefined}
+                    onRegenerate={msg.role === "assistant" && msg.id !== streamingMsgId ? () => void handleRegenerate(msg.id) : undefined}
+                    isEditing={editingMsgId === msg.id}
+                    editText={editingMsgId === msg.id ? editText : undefined}
+                    onEditChange={setEditText}
+                    onEditSave={() => void handleEditSave()}
+                    onEditCancel={handleEditCancel}
+                    onCodePreview={(code, lang, filename) => setPreviewCode({ code, lang, filename })}
+                    modelName={shortModelName(model)}
+                  />,
+                  ...(showAd
+                    ? [
+                        <div key={`ad-${msg.id}`} style={{ margin: "4px 0" }}>
+                          <AdUnit slot={import.meta.env.VITE_ADSENSE_AD_SLOT_INFEED} format="auto" />
+                        </div>,
+                      ]
+                    : []),
+                ];
+              })}
               {thinking && <Thinking />}
             </div>
           )}
@@ -2119,6 +2136,11 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
                 {streaming ? <Square size={14} fill="var(--red)" /> : <Send size={15} />}
               </button>
             </div>
+          </div>
+
+          {/* ── AdSense banner (below input, above status) ── */}
+          <div style={{ maxWidth: 760, margin: "8px auto 0" }}>
+            <AdUnit slot={import.meta.env.VITE_ADSENSE_AD_SLOT_BANNER || "0000000000"} format="horizontal" />
           </div>
 
           {/* CHANGE 14 — updated status bar showing provider · model */}

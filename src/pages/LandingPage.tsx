@@ -11,6 +11,7 @@ import ClaudeCodeSection from "../components/landing/ClaudeCodeSection";
 import TransparencySection from "../components/landing/TransparencySection";
 import NinjaStar from "../components/landing/NinjaStar";
 import Footer from "../components/landing/Footer";
+import { AdSenseScript, AdUnit } from "../components/AdSense";
 
 interface LandingPageProps {
   user: UserProfile | null;
@@ -33,10 +34,14 @@ export default function LandingPage({ user }: LandingPageProps) {
 
   return (
     <div className="min-h-screen bg-bg text-text">
+      <AdSenseScript />
       <NavBar user={user} />
       <main>
         <HeroSection user={user} />
         <FeaturesSection />
+        <div className="landing-ad" style={{ maxWidth: 728, margin: "0 auto", padding: "8px 16px" }}>
+          <AdUnit slot={import.meta.env.VITE_ADSENSE_AD_SLOT_BANNER || "0000000000"} format="horizontal" />
+        </div>
         <HowItWorksSection />
         <ModelsShowcase />
         <PricingComparison />
