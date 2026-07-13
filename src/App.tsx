@@ -1266,6 +1266,88 @@ function SettingsModal({ current, onSave, onClose }: { current: TokenSettings; o
   );
 }
 
+// ── ChatInput (memoized to prevent re-renders during streaming) ─────────────
+interface ChatInputProps {
+  input: string;
+  setInput: (v: string) => void;
+  attachments: Attachment[];
+  handleRemoveAttachment: (id: string) => void;
+  streaming: boolean;
+  handleSend: () => void | Promise<void>;
+  handleStop: () => void;
+  handleKeyDown: (e: KeyboardEvent<HTMLTextAreaElement>) => void;
+  handleFileSelect: (e: ChangeEvent<HTMLInputElement>) => void;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+}
+
+const ChatInput = memo(function ChatInput({
+  input, setInput, attachments, handleRemoveAttachment,
+  streaming, handleSend, handleStop, handleKeyDown,
+  handleFileSelect, fileInputRef, textareaRef,
+  provider, model,
+}: ChatInputProps & { provider: string; model: string }) {
+  return (
+    <div
+      className="chat-input-area"
+      style={{
+        padding: "12px 24px 20px",
+        flexShrink: 0,
+        background: "var(--bg)",
+        borderTop: "1px solid var(--border)",
+        position: "relative",
+        zIndex: 5,
+      }}
+    >
+      <div style={{ maxWidth: 760, margin: "0 auto" }}>
+        <div
+          style={{
+            background: "var(--surface)",
+            border: "1.5px solid var(--border2)",
+            borderRadius: 12,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+          }}
+          onFocusCapture={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
+          onBlurCapture={(e) => (e.currentTarget.style.borderColor = "var(--border2)")}
+        >
+          {attachments.length > 0 && (
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", padding: "10px 12px 0" }}>
+              {attachments.map((att) => (
+                <span key={att.id} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, background: "var(--surface2)", border: "1px solid var(--border)", padding: "3px 8px 3px 10px", borderRadius: 6, color: "var(--text-muted)", fontFamily: "'JetBrains Mono', monospace" }}>
+                  {att.type === "image" ? "🖼" : "📎"} {att.name}
+                  <button onClick={() => handleRemoveAttachment(att.id)} style={{ display: "flex", color: "var(--text-dim)", padding: 1, borderRadius: 3 }} onMouseEnter={(e) => (e.currentTarget.style.color = "var(--red)")} onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-dim)")}>
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-end", padding: "10px 12px" }}>
+            <input ref={fileInputRef} type="file" multiple onChange={handleFileSelect} style={{ display: "none" }} accept="image/*,.txt,.md,.py,.js,.ts,.tsx,.jsx,.json,.css,.html,.yml,.yaml,.xml,.csv,.sql,.sh,.rs,.go,.java,.c,.cpp,.h,.rb,.php,.swift,.kt,.r,.lua,.pl,.ex,.exs,.hs,.scala,.dart,.vue,.svelte,.toml,.ini,.cfg,.env,.log" />
+            <button onClick={() => fileInputRef.current?.click()} title="Attach files (max 2 MB each)" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: 8, flexShrink: 0, color: "var(--text-dim)", transition: "color 0.15s, background 0.15s" }} onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text)"; e.currentTarget.style.background = "var(--surface2)"; }} onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-dim)"; e.currentTarget.style.background = "transparent"; }}>
+              <Paperclip size={16} />
+            </button>
+            <textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder={streaming ? "Responding…" : "Message  (Enter ↵ to send, Shift+Enter for newline)"} disabled={streaming} rows={1} style={{ flex: 1, minHeight: 26, maxHeight: 160, overflow: "auto" }} />
+            <button onClick={streaming ? handleStop : () => void handleSend()} disabled={!streaming && !input.trim() && attachments.length === 0} style={{ width: 36, height: 36, borderRadius: 8, background: streaming ? "rgba(248,81,73,0.15)" : "var(--accent)", border: streaming ? "1px solid var(--red)" : "none", color: streaming ? "var(--red)" : "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, opacity: !streaming && !input.trim() && attachments.length === 0 ? 0.35 : 1, transition: "opacity 0.15s, background 0.15s" }}>
+              {streaming ? <Square size={14} fill="var(--red)" /> : <Send size={15} />}
+            </button>
+          </div>
+        </div>
+
+        {/* ── AdSense banner (below input, above status) ── */}
+        <div style={{ maxWidth: 760, margin: "8px auto 0" }}>
+          <AdUnit slot={import.meta.env.VITE_ADSENSE_AD_SLOT_BANNER || "0000000000"} format="horizontal" />
+        </div>
+
+        {/* ── Status bar ── */}
+        <div style={{ textAlign: "center", marginTop: 7, fontSize: 11.5, fontFamily: "'JetBrains Mono', monospace", color: "var(--text-dim)" }}>
+          {provider && model ? `${provider} · ${model}` : ""}
+        </div>
+      </div>
+    </div>
+  );
+});
+
 // ── App ──────────────────────────────────────────────────────────────────────
 export default function App({ user, onLogout }: { user: UserProfile; onLogout: () => void }) {
 
@@ -1843,9 +1925,9 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
     setAttachments((prev) => prev.filter((a) => a.id !== id));
   }, []);
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void handleSend(); }
-  };
+  }, [handleSend]);
 
   const hasMessages = (activeConv?.messages.length ?? 0) > 0;
   const hasCacheHits = activeConv?.messages.some((m) => (m.tokens?.cacheRead ?? 0) > 0) ?? false;
@@ -1878,7 +1960,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
       />
       {/* ── Sidebar mobile overlay (closes sidebar when tapped outside) ── */}
       <div className="sidebar-mobile-overlay" onClick={() => setSidebarCollapsed(true)} />
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0, minHeight: 0 }}>
         <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px", height: 54, borderBottom: "1px solid var(--border)", background: "var(--surface)", flexShrink: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
             <button
@@ -2049,7 +2131,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
           </div>
         )}
 
-        <div ref={scrollContainerRef} onScroll={handleScroll} style={{ flex: 1, overflowY: "auto", position: "relative" }}>
+        <div ref={scrollContainerRef} onScroll={handleScroll} style={{ flex: 1, overflowY: "auto", position: "relative", minHeight: 0 }}>
           {loadingSessionId === activeId ? (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", gap: 6, color: "var(--text-dim)", fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }}>
               <span className="dot" /><span className="dot" /><span className="dot" />
@@ -2121,42 +2203,21 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
           <div ref={bottomRef} />
         </div>
 
-        <div style={{ padding: "12px 24px 18px", flexShrink: 0 }}>
-          <div style={{ maxWidth: 760, margin: "0 auto", background: "var(--surface)", border: "1.5px solid var(--border2)", borderRadius: 12, boxShadow: "0 4px 20px rgba(0,0,0,0.3)" }} onFocusCapture={(e) => (e.currentTarget.style.borderColor = "var(--accent)")} onBlurCapture={(e) => (e.currentTarget.style.borderColor = "var(--border2)")}>
-            {attachments.length > 0 && (
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", padding: "10px 12px 0" }}>
-                {attachments.map((att) => (
-                  <span key={att.id} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, background: "var(--surface2)", border: "1px solid var(--border)", padding: "3px 8px 3px 10px", borderRadius: 6, color: "var(--text-muted)", fontFamily: "'JetBrains Mono', monospace" }}>
-                    {att.type === "image" ? "🖼" : "📎"} {att.name}
-                    <button onClick={() => handleRemoveAttachment(att.id)} style={{ display: "flex", color: "var(--text-dim)", padding: 1, borderRadius: 3 }} onMouseEnter={(e) => (e.currentTarget.style.color = "var(--red)")} onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-dim)")}>
-                      <X size={12} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-            <div style={{ display: "flex", gap: 10, alignItems: "flex-end", padding: "10px 12px" }}>
-              <input ref={fileInputRef} type="file" multiple onChange={handleFileSelect} style={{ display: "none" }} accept="image/*,.txt,.md,.py,.js,.ts,.tsx,.jsx,.json,.css,.html,.yml,.yaml,.xml,.csv,.sql,.sh,.rs,.go,.java,.c,.cpp,.h,.rb,.php,.swift,.kt,.r,.lua,.pl,.ex,.exs,.hs,.scala,.dart,.vue,.svelte,.toml,.ini,.cfg,.env,.log" />
-              <button onClick={() => fileInputRef.current?.click()} title="Attach files (max 2 MB each)" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: 8, flexShrink: 0, color: "var(--text-dim)", transition: "color 0.15s, background 0.15s" }} onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text)"; e.currentTarget.style.background = "var(--surface2)"; }} onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-dim)"; e.currentTarget.style.background = "transparent"; }}>
-                <Paperclip size={16} />
-              </button>
-              <textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder={streaming ? "Responding…" : "Message  (Enter ↵ to send, Shift+Enter for newline)"} disabled={streaming} rows={1} style={{ flex: 1, minHeight: 26, maxHeight: 160, overflow: "auto" }} />
-              <button onClick={streaming ? handleStop : () => void handleSend()} disabled={!streaming && !input.trim() && attachments.length === 0} style={{ width: 36, height: 36, borderRadius: 8, background: streaming ? "rgba(248,81,73,0.15)" : "var(--accent)", border: streaming ? "1px solid var(--red)" : "none", color: streaming ? "var(--red)" : "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, opacity: !streaming && !input.trim() && attachments.length === 0 ? 0.35 : 1, transition: "opacity 0.15s, background 0.15s" }}>
-                {streaming ? <Square size={14} fill="var(--red)" /> : <Send size={15} />}
-              </button>
-            </div>
-          </div>
-
-          {/* ── AdSense banner (below input, above status) ── */}
-          <div style={{ maxWidth: 760, margin: "8px auto 0" }}>
-            <AdUnit slot={import.meta.env.VITE_ADSENSE_AD_SLOT_BANNER || "0000000000"} format="horizontal" />
-          </div>
-
-          {/* CHANGE 14 — updated status bar showing provider · model */}
-          <div style={{ textAlign: "center", marginTop: 7, fontSize: 11.5, fontFamily: "'JetBrains Mono', monospace", color: "var(--text-dim)" }}>
-            {provider} · {model} · {activeConv?.messages.length ?? 0} msg{(activeConv?.messages.length ?? 0) !== 1 ? "s" : ""} · {sessions.length} session{sessions.length !== 1 ? "s" : ""}
-          </div>
-        </div>
+        <ChatInput
+          input={input}
+          setInput={setInput}
+          attachments={attachments}
+          handleRemoveAttachment={handleRemoveAttachment}
+          streaming={streaming}
+          handleSend={handleSend}
+          handleStop={handleStop}
+          handleKeyDown={handleKeyDown}
+          handleFileSelect={handleFileSelect}
+          fileInputRef={fileInputRef}
+          textareaRef={textareaRef}
+          provider={provider}
+          model={model}
+        />
       </div>
 
       {showKeyModal && <ApiKeyModal current={apiKey} onSave={handleSaveKey} onClose={() => setShowKeyModal(false)} />}
