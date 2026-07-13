@@ -1302,6 +1302,15 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
   const [theme, setTheme] = useState<"dark" | "light">(() => (localStorage.getItem("arc_theme") as "dark" | "light") ?? "dark");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Prevent body scrolling when the chat app is mounted so scrolling
+  // only happens inside the chat message container. The sidebar stays
+  // fixed in place because it's inside a 100vh flex container.
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
   // Edit state
   const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
