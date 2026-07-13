@@ -1274,7 +1274,7 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
   const [backendDown, setBackendDown] = useState(false);
 
   const [activeId, setActiveId] = useState<string>(() => loadActiveId(user.id));
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth <= 768);
   const [loadingSessionId, setLoadingSessionId] = useState<string | null>(null);
   // Track sessions we created locally so we don't try to lazy-load their (empty) messages
   const newSessionIdsRef = useRef<Set<string>>(new Set());

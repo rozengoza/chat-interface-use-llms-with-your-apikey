@@ -8,7 +8,7 @@ import { getActiveSession } from "./auth.ts";
 import type { UserProfile } from "./auth.ts";
 
 function AuthGuard({ user, children }: { user: UserProfile | null; children: React.ReactNode }) {
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
