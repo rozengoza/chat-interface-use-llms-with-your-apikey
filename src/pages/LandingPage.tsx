@@ -9,7 +9,7 @@ import ModelsShowcase from "../components/landing/ModelsShowcase";
 import PricingComparison from "../components/landing/PricingComparison";
 import ClaudeCodeSection from "../components/landing/ClaudeCodeSection";
 import TransparencySection from "../components/landing/TransparencySection";
-import NinjaStar from "../components/landing/NinjaStar";
+import Boomerang from "../components/landing/Boomerang";
 import Footer from "../components/landing/Footer";
 import { AdSenseScript, AdUnit } from "../components/AdSense";
 
@@ -49,7 +49,7 @@ export default function LandingPage({ user }: LandingPageProps) {
         <TransparencySection />
       </main>
       <Footer />
-      <NinjaStar />
+      <Boomerang />
     </div>
   );
 }
