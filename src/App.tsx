@@ -66,7 +66,7 @@ import { streamChat, MODELS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "./api";
 import faviconUrl from "./assets/favicon.svg";
 import "./index.css";
 import gsap from "gsap";
-import { AdSenseScript, AdUnit } from "./components/AdSense";
+import { AdUnit } from "./components/AdSense";
 
 marked.setOptions({
   breaks: true,
@@ -1909,7 +1909,6 @@ export default function App({ user, onLogout }: { user: UserProfile; onLogout: (
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-      <AdSenseScript />
       <Sidebar
         sessions={sessions}
         activeId={activeId}

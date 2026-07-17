@@ -11,7 +11,7 @@ import ClaudeCodeSection from "../components/landing/ClaudeCodeSection";
 import TransparencySection from "../components/landing/TransparencySection";
 import Boomerang from "../components/landing/Boomerang";
 import Footer from "../components/landing/Footer";
-import { AdSenseScript, AdUnit } from "../components/AdSense";
+import { AdUnit } from "../components/AdSense";
 
 interface LandingPageProps {
   user: UserProfile | null;
@@ -34,7 +34,6 @@ export default function LandingPage({ user }: LandingPageProps) {
 
   return (
     <div className="min-h-screen bg-bg text-text">
-      <AdSenseScript />
       <NavBar user={user} />
       <main>
         <HeroSection user={user} />

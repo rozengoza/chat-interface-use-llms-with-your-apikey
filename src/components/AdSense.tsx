@@ -11,29 +11,6 @@ declare global {
 // Set VITE_ADSENSE_CLIENT_ID=ca-pub-XXXXXXXXXXXXXXXX in .env to enable ads
 const CLIENT_ID = import.meta.env.VITE_ADSENSE_CLIENT_ID || "";
 
-// ── AdSenseScript ──────────────────────────────────────────────
-/**
- * Loads the AdSense script once at the app root.
- * Place this near the top of your app layout (only once).
- * When no CLIENT_ID is set, this is a no-op.
- */
-export function AdSenseScript() {
-  useEffect(() => {
-    if (!CLIENT_ID) return;
-    const id = "adsbygoogle-init";
-    if (document.getElementById(id)) return;
-
-    const script = document.createElement("script");
-    script.id = id;
-    script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${CLIENT_ID}`;
-    script.crossOrigin = "anonymous";
-    script.async = true;
-    document.head.appendChild(script);
-  }, []);
-
-  return null;
-}
-
 // ── AdUnit ─────────────────────────────────────────────────────
 interface AdUnitProps {
   /** Ad slot ID from the AdSense dashboard (e.g. "1234567890") */
@@ -66,16 +43,18 @@ export function AdUnit({ slot, format = "auto", layout, className, style }: AdUn
     if (!CLIENT_ID || pushed.current) return;
     pushed.current = true;
 
-    // AdSense needs the <ins> in the DOM before we push
-    const timer = setTimeout(() => {
+    // AdSense needs the <ins> in the DOM before we push.
+    // requestAnimationFrame fires after paint so the element is guaranteed
+    // to be rendered — more reliable than a fixed setTimeout delay.
+    const raf = requestAnimationFrame(() => {
       try {
         (window.adsbygoogle = window.adsbygoogle || []).push({});
       } catch {
         // Ad-blocker or other non-fatal error — safely ignored
       }
-    }, 200);
+    });
 
-    return () => clearTimeout(timer);
+    return () => cancelAnimationFrame(raf);
   }, []);
 
   if (!CLIENT_ID) return null;
