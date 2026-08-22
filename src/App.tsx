@@ -252,6 +252,7 @@ function TokenRow({ msg }: { msg: Message }) {
 // Short display name for a model ID — e.g. "claude-sonnet-4-6" → "Sonnet 4.6"
 function shortModelName(modelId: string): string {
   const known: Record<string, string> = {
+    "gemini-2.5-flash": "Flash 2.5",
     "gemini-2.0-flash": "Flash",
     "gemini-1.5-flash": "Flash",
     "claude-sonnet-4-6": "Sonnet 4.6",

@@ -654,7 +654,7 @@ input:focus-visible
   z-index: 1;
   margin: 1.5px;
   border-radius: 10.5px;
-  background: transparent;
+  background: var(--surface);
   display: flex;
   gap: 10px;
   align-items: flex-end;
